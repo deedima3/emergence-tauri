@@ -11,6 +11,7 @@ mod dto;
 mod keystore_handler;
 mod auth_handler;
 mod img_encryptor;
+mod security_handler;
 
 use std::thread;
 
@@ -18,6 +19,9 @@ use config_store::ConfigStore;
 use keystore_handler::{
     init_keystore, KeyStoreState,
     handle_is_registered, handle_register_client,
+};
+use security_handler::{
+    handle_encrypt_data, handle_decrypt_data
 };
 use auth_handler::handle_auth;
 use tauri::{utils::config::AppUrl, Manager, State, WindowUrl, Window};
@@ -61,7 +65,13 @@ async fn main() {
             keystore: Default::default(),
         })
         .invoke_handler(tauri::generate_handler![
-            handle_auth, handle_is_registered, handle_register_client, open_splashscreen, close_splashscreen
+            handle_auth, 
+            handle_is_registered, 
+            handle_register_client,
+            handle_encrypt_data, 
+            handle_decrypt_data, 
+            open_splashscreen, 
+            close_splashscreen
         ])
         .setup(|app| {
             // let splash_window = app.get_window("splashscreen").unwrap();

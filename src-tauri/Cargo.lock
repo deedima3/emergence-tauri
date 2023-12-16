@@ -403,8 +403,10 @@ checksum = "7f2c685bad3eb3d45a01354cedb7d5faa66194d1d58ba6e267a8de788f79db38"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-targets 0.48.5",
 ]
 
@@ -845,6 +847,7 @@ dependencies = [
  "anyhow",
  "argon2",
  "cbc",
+ "chrono",
  "data-encoding",
  "hkdf",
  "hmac",
@@ -865,6 +868,7 @@ dependencies = [
  "tauri-plugin-log",
  "thiserror",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -2718,6 +2722,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a78046161564f5e7cd9008aff3b2990b3850dc8e0349119b98e8f251e099f24d"
 dependencies = [
  "bitflags 2.4.1",
+ "chrono",
  "fallible-iterator",
  "fallible-streaming-iterator",
  "hashlink",
@@ -3829,6 +3834,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e395fcf16a7a3d8127ec99782007af141946b4795001f876d54fb0d55978560"
 dependencies = [
  "getrandom 0.2.11",
+ "rand 0.8.5",
 ]
 
 [[package]]

@@ -11,7 +11,7 @@ use std::path::PathBuf;
 
 use crate::dto::{
     APAT_END_MAGIC_STRING, APAT_START_MAGIC_STRING, MAGIC_STRING, PAT_END_MAGIC_STRING,
-    PAT_START_MAGIC_STRING,
+    PAT_START_MAGIC_STRING, DIR_ENC, DIR_THUMBNAILS,
 };
 use crate::error::{BackendError, BackendResult};
 use crate::security::{aes256_decrypt, aes256_encrypt, expand_secret_key};
@@ -57,7 +57,7 @@ fn combine_image(pat_img: DynamicImage, apat_img: DynamicImage) -> ImageBuffer<R
     og_img
 }
 
-fn split_image(filename: &str, og_img: DynamicImage) -> (Vec<u8>, Vec<u8>) {
+fn split_image(og_img: DynamicImage) -> (Vec<u8>, Vec<u8>) {
     let (width, height) = og_img.dimensions();
     let mut pat_img = RgbaImage::new(width, height);
     let mut apat_img = RgbaImage::new(width, height);
@@ -92,13 +92,14 @@ fn split_image(filename: &str, og_img: DynamicImage) -> (Vec<u8>, Vec<u8>) {
     (pat_vec, apat_vec)
 }
 
-fn encrypt_data(
-    filepath: &PathBuf,
-    thumbnail: &Option<PathBuf>,
-    outpath: &Option<PathBuf>,
-    key: &Option<String>,
+pub(crate) fn encrypt_image(
+    filepath: PathBuf,
+    thumbnail: Option<PathBuf>,
+    key: String,
+    basepath: PathBuf,
+    filename: String,
 ) -> BackendResult<(), BackendError> {
-    let raw_img = match fs::read(filepath) {
+    let raw_img = match fs::read(filepath.clone()) {
         Ok(v) => v,
         Err(e) => {
             return Err(BackendError::GenericError(format!(
@@ -128,24 +129,12 @@ fn encrypt_data(
         }
     };
 
-    let og_filename = filepath.file_name().unwrap().to_str().unwrap();
-
-    let out = if let Some(v) = outpath {
-        v.clone()
-    } else {
-        let mut temp = filepath.clone();
-        temp.set_extension(format!(
-            "enc.{}",
-            temp.extension().unwrap_or_default().to_str().unwrap()
-        ));
-        temp
-    };
-
+    let prefixed_filename = format!("{}.{}", filename, filepath.extension().unwrap_or_default().to_str().unwrap());
     let file = match fs::OpenOptions::new()
         .create(true)
         .write(true)
         .append(true)
-        .open(out)
+        .open(prefixed_filename.clone())
     {
         Ok(v) => v,
         Err(e) => {
@@ -198,6 +187,16 @@ fn encrypt_data(
                 )))
             }
         }
+
+        match img.save_with_format(basepath.join(DIR_THUMBNAILS).join(prefixed_filename), ImageFormat::Png) {
+            Ok(_) => (),
+            Err(e) => {
+                return Err(BackendError::GenericError(format!(
+                    "failed to write thumbnail err: {}",
+                    e
+                )))
+            }
+        };
     } else {
         let raw_timg = match fs::read(filepath) {
             Ok(v) => v,
@@ -245,29 +244,28 @@ fn encrypt_data(
                 )))
             }
         }
+
+        match blurred.save_with_format(basepath.join(DIR_THUMBNAILS).join(prefixed_filename), ImageFormat::Png) {
+            Ok(_) => (),
+            Err(e) => {
+                return Err(BackendError::GenericError(format!(
+                    "failed to write thumbnail err: {}",
+                    e
+                )))
+            }
+        };
     };
 
     let mut iv = [0u8; 16];
     OsRng.fill_bytes(&mut iv);
 
-    let (pat_key, apat_key): (GenericArray<u8, U32>, GenericArray<u8, U32>) = if let Some(v) = key {
-        let secret = BASE64.decode(v.as_bytes()).expect("failed to decode key");
+    let (pat_key, apat_key): (GenericArray<u8, U32>, GenericArray<u8, U32>) =  {
+        let secret = BASE64.decode(key.as_bytes()).expect("failed to decode key");
 
         expand_secret_key(secret).expect("failed to expand key")
-    } else {
-        let mut temp = [0u8; 32];
-        OsRng.fill_bytes(&mut temp);
-
-        println!(
-            "filename: {} key used: {}",
-            og_filename,
-            BASE64.encode(&temp.clone())
-        );
-
-        expand_secret_key(temp.to_vec()).expect("failed to expand key")
     };
 
-    let (pattern_img, antipattern_img) = split_image(og_filename, og_img);
+    let (pattern_img, antipattern_img) = split_image(og_img);
 
     let enc_pattern_img = aes256_encrypt(pat_key, &pattern_img);
     let enc_antipattern_img = aes256_encrypt(apat_key, &antipattern_img);
@@ -327,12 +325,12 @@ fn encrypt_data(
     Ok(())
 }
 
-fn decrypt_data(
-    filepath: &PathBuf,
-    outpath: &Option<PathBuf>,
-    key: &String,
-) -> BackendResult<(), BackendError> {
-    let rawdata = match fs::read(filepath) {
+pub(crate) fn decrypt_image(
+    basepath: PathBuf,
+    filename: String,
+    key: String,
+) -> BackendResult<Vec<u8>, BackendError> {
+    let rawdata = match fs::read(basepath.join(DIR_ENC).join(filename)) {
         Ok(v) => v,
         Err(e) => {
             return Err(BackendError::GenericError(format!(
@@ -416,32 +414,11 @@ fn decrypt_data(
 
     let actual_data = combine_image(pat_img, apat_img);
 
-    let out = if let Some(v) = outpath {
-        v.clone()
-    } else {
-        let filestem = filepath.file_stem().unwrap_or_default().to_string_lossy();
-        let mut temp = filepath.clone();
+    let mut data_vec = Vec::new();
+    let mut data_cur = Cursor::new(&mut data_vec);
 
-        println!("{}", filestem);
-
-        if filestem.contains("enc") {
-            let new_filename: Vec<&str> = filestem.split(".enc").collect();
-            temp.set_file_name(new_filename.join(""));
-            temp.set_extension(filepath.extension().unwrap());
-
-            temp
-        } else {
-            let file_stem = filepath.file_stem().unwrap_or_default();
-            temp.set_file_name(OsStr::new(
-                format!("{}_dec", file_stem.to_str().unwrap()).as_str(),
-            ));
-            temp
-        }
-    };
-
-    actual_data
-        .save_with_format(out, img_type)
-        .expect("failed to save img");
-
-    Ok(())
+    match actual_data.write_to(&mut data_cur, img_type) {
+        Ok(_) => Ok(data_vec),
+        Err(e) => Err(BackendError::DataIntegrityError(format!("failed to save img err: {}", e)))
+    }
 }

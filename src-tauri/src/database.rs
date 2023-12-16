@@ -63,6 +63,8 @@ pub(crate) fn migrate_db(db: &mut Connection, exist_ver: u32) -> Result<(), rusq
             tx.execute_batch("
                 alter table em_data_dir add column encrypted_at datetime;
                 alter table em_data_dir add column accessed_at datetime;
+                alter table em_data_dir add column file_uid text;
+                alter table em_data_dir add column file_ext text;
                 ",
             )?;
         }
