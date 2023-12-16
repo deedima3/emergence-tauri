@@ -7,6 +7,6 @@
 
 {#if isLoading}
   <DarkBackground {onClose}>
-    <img src="/Splasho.png" alt="Logo Mixue" class="w-40 h-40 animate-pulse" />
+    <img src="/Splash.png" alt="Logo Mixue" class="w-40 h-40 animate-pulse" />
   </DarkBackground>
 {/if}

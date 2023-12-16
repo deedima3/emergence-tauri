@@ -9,7 +9,7 @@ import { createForm } from "felte";
 import reporter from "@felte/reporter-tippy";
 import type { ApiResponse } from "@/types/api.types";
 
-interface MutationFormParams<T> {
+type MutationFormParams<T> = {
     mutationApi: (data: T) => any,
     actionName: string,
     formSchema: ZodSchema,

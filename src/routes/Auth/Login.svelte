@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { login } from "@/api/auth";
+  import { isRegistered, login } from "@/api/auth";
   import LoginButton from "@/components/Button/LoginButton.svelte";
   import PasswordInput from "@/components/Input/PasswordInput.svelte";
   import BackgroundLayout from "@/components/Layouts/BackgroundLayout.svelte";
   import LoadingPulse from "@/components/Loading/LoadingPulse.svelte";
   import { loginSchema } from "@/constant/schema";
   import { createMutationForm } from "@/hooks/createMutationForm";
+  import { onMount } from "svelte";
+  import { push } from "svelte-spa-router";
 
   const {
     form: { form },
@@ -15,6 +17,14 @@
     formSchema: loginSchema,
     actionName: "Login",
     callbackRoute: "/dashboard",
+  });
+
+  onMount(async () => {
+    const registered = await isRegistered();
+    console.log("Registered", registered);
+    if (!registered) {
+      push("/register");
+    }
   });
 </script>
 

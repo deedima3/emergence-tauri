@@ -19,7 +19,7 @@ const register = async (clientData: ClientRegistrationPayload) => {
     }
 }
 
-const is_registered = async (): Promise<boolean> => {
+const isRegistered = async (): Promise<boolean> => {
     try {
         return await invoke('handle_is_registered')
     } catch (e) {
@@ -31,5 +31,5 @@ const is_registered = async (): Promise<boolean> => {
 export {
     login,
     register, 
-    is_registered
+    isRegistered
 }
