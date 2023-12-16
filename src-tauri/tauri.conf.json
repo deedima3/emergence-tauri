@@ -73,7 +73,7 @@
         "title": "Emergence | Personal Data App",
         "width": 1280,
         "height": 720,
-        "visible" : true,
+        "visible" : false,
         "label" : "main"
       },
       {
@@ -83,7 +83,7 @@
         "width": 1280,
         "height": 720,
         "label" : "splashscreen",
-        "url" : "../splashscreen.html",
+        "url" : "splashscreen.html",
         "visible" : true
       }
     ]

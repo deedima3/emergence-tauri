@@ -47,6 +47,16 @@ rand = "0.8.5"
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 log = "^0.4"
 argon2 = { version = "0.5.2" }
+image = { version = "0.24.7", features = [
+    "bmp",
+    "gif",
+    "jpeg",
+    "png",
+    "tga",
+    "webp"
+] }
+rayon = "1.8.0"
+
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

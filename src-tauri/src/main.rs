@@ -10,6 +10,9 @@ mod security;
 mod dto;
 mod keystore_handler;
 mod auth_handler;
+mod img_encryptor;
+
+use std::thread;
 
 use config_store::ConfigStore;
 use keystore_handler::{
@@ -17,22 +20,9 @@ use keystore_handler::{
     handle_is_registered, handle_register_client,
 };
 use auth_handler::handle_auth;
-use tauri::{utils::config::AppUrl, Manager, State, WindowUrl};
+use tauri::{utils::config::AppUrl, Manager, State, WindowUrl, Window};
 use tauri_plugin_log::LogTarget;
-use tauri::{Manager, Window};
 
-#[tokio::main]
-async fn main() {
-    let port = portpicker::pick_unused_port().expect("failed to find unused port");
-
-    let mut context = tauri::generate_context!();
-    let url = format!("https://localhost:{}", port).parse().unwrap();
-    let window_url = WindowUrl::External(url);
-
-    context.config_mut().build.dist_dir = AppUrl::Url(window_url);
-
-// Create the command:
-// This command must be async so that it doesn't run on the main thread.
 #[tauri::command]
 async fn close_splashscreen(window: Window) {
   // Close splashscreen
@@ -47,11 +37,15 @@ async fn open_splashscreen(window: Window) {
   window.get_window("splashscreen").expect("no window labeled 'splashscreen' found").show().unwrap();
 }
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
+#[tokio::main]
+async fn main() {
+    let port = portpicker::pick_unused_port().expect("failed to find unused port");
+
+    let mut context = tauri::generate_context!();
+    let url = format!("https://localhost:{}", port).parse().unwrap();
+    let window_url = WindowUrl::External(url);
+
+    context.config_mut().build.dist_dir = AppUrl::Url(window_url);
 
     tauri::Builder::default()
         .plugin(tauri_plugin_localhost::Builder::new(port).build())
@@ -67,9 +61,12 @@ fn greet(name: &str) -> String {
             keystore: Default::default(),
         })
         .invoke_handler(tauri::generate_handler![
-            handle_auth, handle_is_registered, handle_register_client
+            handle_auth, handle_is_registered, handle_register_client, open_splashscreen, close_splashscreen
         ])
         .setup(|app| {
+            // let splash_window = app.get_window("splashscreen").unwrap();
+            // let main_window = app.get_window("main").unwrap();
+
             let handle = app.handle();
 
             let cfg_state: State<ConfigStore> = handle.state();
@@ -80,12 +77,12 @@ fn greet(name: &str) -> String {
             let keystore = init_keystore(&cfg_state).unwrap_or_default();
                             *keystore_state.keystore.lock().unwrap() = keystore;
 
+            // thread::sleep(std::time::Duration::from_secs(5));
+            // splash_window.close().unwrap();
+            // main_window.show().unwrap();
+            
             Ok(())
         })
         .run(context)
-        .invoke_handler(tauri::generate_handler![greet])
-        .invoke_handler(tauri::generate_handler![close_splashscreen])
-        .invoke_handler(tauri::generate_handler![open_splashscreen])
-        .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
