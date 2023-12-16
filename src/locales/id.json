@@ -1,0 +1,34 @@
+{
+    "api_error": {
+      "500011": "Kesalahan pada server!",
+      "400012": "Request yang dikirim salah!",
+      "403013": "Anda tidak memiliki akses ke fitur ini!",
+      "401014": "Username atau password salah!",
+      "400015": "Data yang diinput sudah ada!",
+      "422016": "Data yang dikirimkan salah!",
+      "404017": "Data yang anda pilih tidak tersedia!",
+      "400018" : "Data yang anda input tidak lengkap!",
+      "403021": "Sesi login anda sudah habis!",
+      "400022": "Akun sudah digunakan!",
+      "403023": "Akun sudah dinonaktifkan!",
+      "422024": "Stok yang ada tidak cukup!",
+      "422027": "Konversi bahan belum di setting!"
+    },
+    "validator_error": {
+      "should_value": "Isi nilai yang berbentuk {{value}}!",
+      "should_choosen": "{{data}} harus dipilih!",
+      "should_filled": "{{data}} harus diisi!",
+      "is_past": "{{data}} harus di masa lalu!",
+      "is_future": "{{data}} harus di masa depan!",
+      "is_percentage": "Isi nilai persentase yang valid!"
+    },
+    "success": {
+      "success": "{{data}} berhasil!",
+      "add": "{{data}} berhasil ditambahkan!",
+      "edit": "{{data}} berhasil diubah!",
+      "delete": "{{data}} berhasil dihapus!",
+      "nonactive": "{{data}} berhasil dinonaktifkan!",
+      "reactivated": "{{data}} berhasil diaktifkan kembali!"
+    }
+  }
+  
