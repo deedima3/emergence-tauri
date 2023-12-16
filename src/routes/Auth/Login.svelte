@@ -5,6 +5,7 @@
   import BackgroundLayout from "@/components/Layouts/BackgroundLayout.svelte";
   import { loginSchema } from "@/constant/schema";
   import { createMutationForm } from "@/hooks/createMutationForm";
+  import { invoke } from "@tauri-apps/api/tauri";
 
   const {
     form: { form },
@@ -26,7 +27,7 @@
     </h2>
     <form class="flex flex-col w-full max-w-xs gap-2" use:form>
       <PasswordInput label="Password*" name="password" />
-      <LoginButton/>
+      <LoginButton />
     </form>
   </div>
 </BackgroundLayout>

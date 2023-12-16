@@ -19,6 +19,7 @@ use keystore_handler::{
 use auth_handler::handle_auth;
 use tauri::{utils::config::AppUrl, Manager, State, WindowUrl};
 use tauri_plugin_log::LogTarget;
+use tauri::{Manager, Window};
 
 #[tokio::main]
 async fn main() {
@@ -29,6 +30,28 @@ async fn main() {
     let window_url = WindowUrl::External(url);
 
     context.config_mut().build.dist_dir = AppUrl::Url(window_url);
+
+// Create the command:
+// This command must be async so that it doesn't run on the main thread.
+#[tauri::command]
+async fn close_splashscreen(window: Window) {
+  // Close splashscreen
+  window.get_window("splashscreen").expect("no window labeled 'splashscreen' found").close().unwrap();
+  // Show main window
+  window.get_window("main").expect("no window labeled 'main' found").show().unwrap();
+}
+
+#[tauri::command]
+async fn open_splashscreen(window: Window) {
+  // Open splashscreen
+  window.get_window("splashscreen").expect("no window labeled 'splashscreen' found").show().unwrap();
+}
+
+// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+#[tauri::command]
+fn greet(name: &str) -> String {
+    format!("Hello, {}! You've been greeted from Rust!", name)
+}
 
     tauri::Builder::default()
         .plugin(tauri_plugin_localhost::Builder::new(port).build())
@@ -60,5 +83,9 @@ async fn main() {
             Ok(())
         })
         .run(context)
+        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![close_splashscreen])
+        .invoke_handler(tauri::generate_handler![open_splashscreen])
+        .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

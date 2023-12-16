@@ -9,11 +9,13 @@
   import "@fontsource/poppins/700.css";
   import "@fontsource/poppins/900.css";
   import "tippy.js/dist/tippy.css";
+  import { invoke } from "@tauri-apps/api/tauri";
 
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
   import { Toaster } from "svelte-french-toast";
   import Router from "svelte-spa-router";
   import { routes } from "./constant/routes";
+  import { onMount } from "svelte";
 
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -21,6 +23,10 @@
         retry: 3,
       },
     },
+  });
+
+  onMount(() => {
+    invoke("close_splashscreen");
   });
 </script>
 

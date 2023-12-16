@@ -70,9 +70,21 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "emergence-tauri",
+        "title": "Emergence | Personal Data App",
         "width": 1280,
-        "height": 720
+        "height": 720,
+        "visible" : true,
+        "label" : "main"
+      },
+      {
+        "fullscreen": false,
+        "resizable": false,
+        "title": "Emergence | Personal Data App",
+        "width": 1280,
+        "height": 720,
+        "label" : "splashscreen",
+        "url" : "../splashscreen.html",
+        "visible" : true
       }
     ]
   }
