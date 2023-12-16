@@ -1,17 +1,16 @@
 <script lang="ts">
   import BackgroundLayout from "@/components/Layouts/BackgroundLayout.svelte";
   import "../../app.css";
-  import "@fontsource/dm-sans/400.css";
-  import "@fontsource/dm-sans/500.css";
-  import "@fontsource/dm-sans/700.css";
-  import "@fontsource/dm-sans/900.css";
   import "@fontsource/poppins/400.css";
   import "@fontsource/poppins/500.css";
   import "@fontsource/poppins/700.css";
   import "@fontsource/poppins/900.css";
-  import "tippy.js/dist/tippy.css";
   import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/tauri";
+
+  onMount(() => {
+    invoke("open_splashscreen");
+  });
 </script>
 
 <BackgroundLayout>

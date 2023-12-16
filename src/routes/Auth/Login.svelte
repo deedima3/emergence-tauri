@@ -3,9 +3,9 @@
   import LoginButton from "@/components/Button/LoginButton.svelte";
   import PasswordInput from "@/components/Input/PasswordInput.svelte";
   import BackgroundLayout from "@/components/Layouts/BackgroundLayout.svelte";
+  import LoadingPulse from "@/components/Loading/LoadingPulse.svelte";
   import { loginSchema } from "@/constant/schema";
   import { createMutationForm } from "@/hooks/createMutationForm";
-  import { invoke } from "@tauri-apps/api/tauri";
 
   const {
     form: { form },
@@ -31,3 +31,5 @@
     </form>
   </div>
 </BackgroundLayout>
+
+<LoadingPulse isLoading={$mutation.isPending} />

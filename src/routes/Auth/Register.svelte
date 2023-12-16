@@ -1,8 +1,10 @@
 <script lang="ts">
   import { register } from "@/api/auth";
+  import LoginButton from "@/components/Button/LoginButton.svelte";
   import PasswordInput from "@/components/Input/PasswordInput.svelte";
   import BackgroundLayout from "@/components/Layouts/BackgroundLayout.svelte";
-  import { loginSchema, registerSchema } from "@/constant/schema";
+  import LoadingPulse from "@/components/Loading/LoadingPulse.svelte";
+  import { registerSchema } from "@/constant/schema";
   import { createMutationForm } from "@/hooks/createMutationForm";
 
   const {
@@ -25,8 +27,10 @@
     </h2>
     <form class="flex flex-col w-full max-w-xs gap-2" use:form>
       <PasswordInput label="Password*" name="password" />
-      <PasswordInput label="Encryption Key*" name="encryption_key" />
+      <PasswordInput label="Encryption Key" name="encryption_key" />
       <LoginButton />
     </form>
   </div>
 </BackgroundLayout>
+
+<LoadingPulse isLoading={$mutation.isPending} />

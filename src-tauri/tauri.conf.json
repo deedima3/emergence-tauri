@@ -84,7 +84,7 @@
         "height": 720,
         "label" : "splashscreen",
         "url" : "splashscreen.html",
-        "visible" : true
+        "visible" : false
       }
     ]
   }

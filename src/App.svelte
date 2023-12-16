@@ -25,8 +25,12 @@
     },
   });
 
-  onMount(() => {
+  const onLoad = () => {
     invoke("close_splashscreen");
+  };
+
+  onMount(() => {
+    setTimeout(onLoad, 3000);
   });
 </script>
 
