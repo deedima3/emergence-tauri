@@ -3,7 +3,7 @@ use std::fs;
 use rusqlite::Connection;
 use tauri::AppHandle;
 
-const CURR_DB_VER: u32 = 1;
+const CURR_DB_VER: u32 = 2;
 
 pub(crate) fn init_db(app_handle: &AppHandle) -> Result<Connection, rusqlite::Error> {
     let app_dir = app_handle
@@ -37,25 +37,35 @@ pub(crate) fn migrate_db(db: &mut Connection, exist_ver: u32) -> Result<(), rusq
         let tx = db.transaction()?;
         tx.pragma_update(None, "user_version", CURR_DB_VER)?;
 
-        tx.execute_batch(
-            "
-                create table em_config (
-                    key text not null,
-                    data text
-                );
-
-                create table em_folders (
-                    id integer primary key autoincrement,
-                    name text not null default ''
-                );
-
-                create table em_data_dir (
-                    id integer primary key autoincrement,
-                    folder_id integer not null default '',
-                    name text not null default ''
-                );
-            ",
-        )?;
+        if exist_ver < 1 {
+            tx.execute_batch(
+                "
+                    create table em_config (
+                        key text not null,
+                        data text
+                    );
+    
+                    create table em_folders (
+                        id integer primary key autoincrement,
+                        name text not null default ''
+                    );
+    
+                    create table em_data_dir (
+                        id integer primary key autoincrement,
+                        folder_id integer not null default '',
+                        name text not null default ''
+                    );
+                ",
+            )?;
+        }
+        
+        if exist_ver < 2 {
+            tx.execute_batch("
+                alter table em_data_dir add column encrypted_at datetime;
+                alter table em_data_dir add column accessed_at datetime;
+                ",
+            )?;
+        }
 
         tx.commit()?;
     }
