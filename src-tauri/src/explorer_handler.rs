@@ -293,7 +293,7 @@ pub async fn handle_delete_folder(
     debug!("{} {}", payload.folder_id, payload.name);
 
     match conn.execute(
-        "delete em_folders where id = :id",
+        "delete from em_folders where id = :id",
         &[(":id", &payload.folder_id.to_string())],
     ) {
         Ok(v) => v,
@@ -375,7 +375,7 @@ pub async fn handle_delete_file(
     };
 
     match conn.execute(
-        "delete em_data_dir where id = :id",
+        "delete from em_data_dir where id = :id",
         &[(":id", &payload.folder_id.to_string())],
     ) {
         Ok(v) => v,
