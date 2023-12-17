@@ -6,14 +6,14 @@
   import { createNewFolder } from "@/api/explorer";
 </script>
 
-<div class="flex flex-col bg-main rounded-md gap-5">
+<div class="flex bg-main rounded-full gap-5 py-5 px-5 justify-between">
   <button class="" on:click={onBack}>
     <ArrowLeft />
   </button>
   <button class="" on:click={onForward}>
     <ArrowRight />
   </button>
-  <button class="" on:click={createNewFolder}>
+  <button class="" on:click={() => createNewFolder("New Folder")}>
     <FolderPlus />
   </button>
 </div>

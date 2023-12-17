@@ -1,5 +1,5 @@
-import { getFolderFileByFolderID, getMetaByFileID } from "@/api/explorer"
-import { QueryObserver, useQueryClient } from "@tanstack/svelte-query"
+import { getAllFolder, getFolderFileByFolderID, getMetaByFileID } from "@/api/explorer"
+import { QueryClient, QueryObserver } from "@tanstack/svelte-query"
 import toast from "svelte-french-toast"
 import { get, writable, type Writable } from "svelte/store"
 
@@ -28,6 +28,7 @@ const queryOption = {
             get(explorerStore).historyID[get(explorerStore).selectedID]
         )
       },
+    enabled : get(explorerStore).historyID[get(explorerStore).selectedID] != 0
 }
 
 const fileMetaQueryOptions = {
@@ -37,11 +38,20 @@ const fileMetaQueryOptions = {
             get(fileMetaStore).selectedFileID
         )
       },
+    enabled : get(fileMetaStore).selectedFileID != 0
 }
 
-const client = useQueryClient();
-const query = new QueryObserver(client, queryOption);
+const allFolderOptions = {
+    queryKey : ["all-folder"],
+    queryFn : () => {
+        return getAllFolder()
+    }
+}
+
+const client = new QueryClient();
+const folderQuery = new QueryObserver(client, queryOption);
 const fileMetaQuery = new QueryObserver(client, fileMetaQueryOptions)
+const allFolderQuery = new QueryObserver(client, allFolderOptions)
 
 const pushHistory = (newID : string | number) => {
     let tempArray = [...get(explorerStore).historyID, newID]
@@ -52,10 +62,14 @@ const pushHistory = (newID : string | number) => {
 }
 
 const onBack = () => {
-    explorerStore.set({
-        historyID : get(explorerStore).historyID,
-        selectedID : get(explorerStore).selectedID - 1
-    })
+    if(get(fileMetaStore).selectedFileID != 0){
+        explorerStore.set({
+            historyID : get(explorerStore).historyID,
+            selectedID : get(explorerStore).selectedID - 1
+        })
+    } else {
+        toast.error("Tidak bisa mundur lagi!")
+    }
 }
 
 const onForward = () => {
@@ -71,18 +85,38 @@ const onForward = () => {
     }
 }
 
+const changeSelectedFile = (id : number) => {
+    if(get(fileMetaStore).selectedFileID){
+        fileMetaStore.set({
+            selectedFileID : id
+        })
+    } else {
+        fileMetaStore.set({
+            selectedFileID : 0
+        })
+    }
+}
+
 explorerStore.subscribe(() => {
-    query.setOptions(queryOption)
+    folderQuery.setOptions(queryOption)
     client.invalidateQueries({
         queryKey : ["file-folder"]
     });
 })
 
-fileMetaQuery.subscribe(() => {
-    query.setOptions(queryOption)
+fileMetaStore.subscribe(() => {
+    folderQuery.setOptions(queryOption)
     client.invalidateQueries({
         queryKey : ["file-meta"]
     });
+})
+
+explorerStore.subscribe((value) => {
+    console.log(value)
+})
+
+fileMetaStore.subscribe((value) => {
+    console.log(value)
 })
 
 
@@ -90,5 +124,9 @@ export {
     explorerStore,
     pushHistory,
     onBack,
-    onForward
+    onForward,
+    changeSelectedFile,
+    folderQuery,
+    fileMetaQuery,
+    allFolderQuery
 }

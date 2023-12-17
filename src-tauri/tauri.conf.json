@@ -18,6 +18,12 @@
           "**"
         ]
       },
+      "window" : {
+        "all" : true
+      },
+      "dialog" : {
+        "all" : true
+      },
       "path": {
         "all": true
       },
@@ -74,7 +80,8 @@
         "width": 1280,
         "height": 720,
         "visible" : false,
-        "label" : "main"
+        "label" : "main",
+        "fileDropEnabled" : false
       },
       {
         "fullscreen": false,
@@ -84,7 +91,9 @@
         "height": 720,
         "label" : "splashscreen",
         "url" : "splashscreen.html",
-        "visible" : false
+        "center" : true,
+        "visible" : false,
+        "alwaysOnTop" : true
       }
     ]
   }

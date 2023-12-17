@@ -1,3 +1,4 @@
+import { allFolderQuery, folderQuery } from "@/stores/explorerStore";
 import type { FileMetaResponse, ImageDecryptPayload, ImageEncryptPayload, ListFolderResponse } from "@/types/rust.types";
 import { invoke } from "@tauri-apps/api";
 
@@ -34,7 +35,7 @@ const getFolderFileByFolderID = async (id:  number) => {
     } catch (e) {
         console.log('rust-err', e);
         return Promise.reject(Error(e as string))
-    }
+    } 
 }
 
 const downloadFile = async (decPayload: ImageDecryptPayload) => {
@@ -49,6 +50,7 @@ const downloadFile = async (decPayload: ImageDecryptPayload) => {
 const createNewFolder = async (name: string) => {
     try {
         await invoke('handle_create_folder', {payload: {name: name}})
+        allFolderQuery.refetch()
     } catch (e) {
         console.log('rust-err', e);
         return Promise.reject(Error(e as string))
