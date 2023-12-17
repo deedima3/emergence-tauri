@@ -334,7 +334,7 @@ pub async fn handle_delete_file(
     };
 
     let res = match conn.query_row(
-        "select folder_id, file_uid, file_ext from em_data_dir where file_uid = :id",
+        "select id, folder_id, file_uid, file_ext from em_data_dir where file_uid = :id",
         &[(":id", &payload.id)],
         |row| {
             Ok(EmDataDir {
