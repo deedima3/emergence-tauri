@@ -12,7 +12,7 @@ pub struct ConfigStore {
 }
 
 impl ConfigStore {
-    pub(crate) fn get(&self, key: String) -> Result<Option<String>, rusqlite::Error> {
+    pub fn get(&self, key: String) -> Result<Option<String>, rusqlite::Error> {
         let db = &mut *self.db.lock().unwrap();
         let conn = match db {
             Some(v) => v,
@@ -30,7 +30,7 @@ impl ConfigStore {
         Ok(val)
     }
 
-    pub(crate) fn save(&self, key: String, val: Option<String>) -> Result<(), rusqlite::Error> {
+    pub fn save(&self, key: String, val: Option<String>) -> Result<(), rusqlite::Error> {
         let db = &mut *self.db.lock().unwrap();
         let conn = match db {
             Some(v) => v,

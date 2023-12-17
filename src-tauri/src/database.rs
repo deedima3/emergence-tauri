@@ -3,15 +3,20 @@ use std::fs;
 use rusqlite::Connection;
 use tauri::AppHandle;
 
+use crate::dto::{DIR_ENC, DIR_THUMBNAILS};
+
 const CURR_DB_VER: u32 = 2;
 
-pub(crate) fn init_db(app_handle: &AppHandle) -> Result<Connection, rusqlite::Error> {
+pub fn init_db(app_handle: &AppHandle) -> Result<Connection, rusqlite::Error> {
     let app_dir = app_handle
         .path_resolver()
         .app_data_dir()
         .expect("appdata dir should be exists");
     fs::create_dir_all(&app_dir).expect("appdata dir should be created");
     let sqlite_path = app_dir.join("emdata.db");
+
+    fs::create_dir_all(app_dir.join(DIR_ENC)).expect("encrypted dir should be created");
+    fs::create_dir_all(app_dir.join(DIR_THUMBNAILS)).expect("thumbnails dir should be created");
 
     let mut db = Connection::open(sqlite_path)?;
 
@@ -30,7 +35,7 @@ pub(crate) fn init_db(app_handle: &AppHandle) -> Result<Connection, rusqlite::Er
     Ok(db)
 }
 
-pub(crate) fn migrate_db(db: &mut Connection, exist_ver: u32) -> Result<(), rusqlite::Error> {
+pub fn migrate_db(db: &mut Connection, exist_ver: u32) -> Result<(), rusqlite::Error> {
     if exist_ver < CURR_DB_VER {
         db.pragma_update(None, "journal_mode", "WAL")?;
 

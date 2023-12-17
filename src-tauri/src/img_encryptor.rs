@@ -2,14 +2,15 @@ use aes::cipher::generic_array::GenericArray;
 use aes::cipher::typenum::U32;
 use data_encoding::BASE64;
 use image::{DynamicImage, GenericImageView, ImageBuffer, ImageFormat, Rgba, RgbaImage};
+use log::debug;
 use rand_core::{OsRng, RngCore};
 use std::fs;
 use std::io::{BufWriter, Cursor, Write};
 use std::path::PathBuf;
 
 use crate::dto::{
-    APAT_END_MAGIC_STRING, APAT_START_MAGIC_STRING, MAGIC_STRING, PAT_END_MAGIC_STRING,
-    PAT_START_MAGIC_STRING, DIR_ENC, DIR_THUMBNAILS,
+    APAT_END_MAGIC_STRING, APAT_START_MAGIC_STRING, DIR_ENC, DIR_THUMBNAILS, MAGIC_STRING,
+    PAT_END_MAGIC_STRING, PAT_START_MAGIC_STRING,
 };
 use crate::error::{BackendError, BackendResult};
 use crate::security::{aes256_decrypt, aes256_encrypt, expand_secret_key};
@@ -90,13 +91,15 @@ fn split_image(og_img: DynamicImage) -> (Vec<u8>, Vec<u8>) {
     (pat_vec, apat_vec)
 }
 
-pub(crate) fn encrypt_image(
+pub fn encrypt_image(
     filepath: PathBuf,
     thumbnail: Option<PathBuf>,
-    key: String,
+    key: Vec<u8>,
     basepath: PathBuf,
     filename: String,
 ) -> BackendResult<(), BackendError> {
+    debug!("{}: starting encryption", filename);
+
     let raw_img = match fs::read(filepath.clone()) {
         Ok(v) => v,
         Err(e) => {
@@ -107,6 +110,7 @@ pub(crate) fn encrypt_image(
         }
     };
 
+    debug!("{}: retrieving data", filename);
     let og_img = match image::load_from_memory(&raw_img) {
         Ok(v) => v,
         Err(e) => {
@@ -127,12 +131,16 @@ pub(crate) fn encrypt_image(
         }
     };
 
-    let prefixed_filename = format!("{}.{}", filename, filepath.extension().unwrap_or_default().to_str().unwrap());
+    let prefixed_filename = format!(
+        "{}.{}",
+        filename,
+        filepath.extension().unwrap_or_default().to_str().unwrap()
+    );
     let file = match fs::OpenOptions::new()
         .create(true)
         .write(true)
         .append(true)
-        .open(prefixed_filename.clone())
+        .open(basepath.join(DIR_ENC).join(prefixed_filename.clone()))
     {
         Ok(v) => v,
         Err(e) => {
@@ -142,9 +150,11 @@ pub(crate) fn encrypt_image(
             )))
         }
     };
+    debug!("{}: file created", filename);
 
     let mut buf = BufWriter::new(file);
 
+    debug!("{}: preparing thumbnail", filename);
     if let Some(tb) = thumbnail {
         let raw_timg = match fs::read(tb) {
             Ok(v) => v,
@@ -186,7 +196,10 @@ pub(crate) fn encrypt_image(
             }
         }
 
-        match img.save_with_format(basepath.join(DIR_THUMBNAILS).join(prefixed_filename), ImageFormat::Png) {
+        match img.save_with_format(
+            basepath.join(DIR_THUMBNAILS).join(prefixed_filename),
+            ImageFormat::Png,
+        ) {
             Ok(_) => (),
             Err(e) => {
                 return Err(BackendError::GenericError(format!(
@@ -243,7 +256,10 @@ pub(crate) fn encrypt_image(
             }
         }
 
-        match blurred.save_with_format(basepath.join(DIR_THUMBNAILS).join(prefixed_filename), ImageFormat::Png) {
+        match blurred.save_with_format(
+            basepath.join(DIR_THUMBNAILS).join(prefixed_filename),
+            ImageFormat::Png,
+        ) {
             Ok(_) => (),
             Err(e) => {
                 return Err(BackendError::GenericError(format!(
@@ -254,20 +270,23 @@ pub(crate) fn encrypt_image(
         };
     };
 
+    debug!("{}: generating secrets", filename);
     let mut iv = [0u8; 16];
     OsRng.fill_bytes(&mut iv);
 
-    let (pat_key, apat_key): (GenericArray<u8, U32>, GenericArray<u8, U32>) =  {
-        let secret = BASE64.decode(key.as_bytes()).expect("failed to decode key");
+    let (pat_key, apat_key): (GenericArray<u8, U32>, GenericArray<u8, U32>) =
+        expand_secret_key(key).expect("failed to expand keys");
 
-        expand_secret_key(secret).expect("failed to expand key")
-    };
-
+    debug!("{}: splitting image", filename);
     let (pattern_img, antipattern_img) = split_image(og_img);
 
+    debug!("{}: encrypting patterned image", filename);
     let enc_pattern_img = aes256_encrypt(pat_key, &pattern_img);
+
+    debug!("{}: encrypting antipattern image", filename);
     let enc_antipattern_img = aes256_encrypt(apat_key, &antipattern_img);
 
+    debug!("{}: compiling components", filename);
     buf.write_all(&MAGIC_STRING)
         .expect("failed to write separator");
     buf.write_all(&[og_ext as u8])
@@ -310,6 +329,7 @@ pub(crate) fn encrypt_image(
         }
     }
 
+    debug!("{}: yeets", filename);
     match buf.flush() {
         Ok(_) => (),
         Err(e) => {
@@ -323,10 +343,10 @@ pub(crate) fn encrypt_image(
     Ok(())
 }
 
-pub(crate) fn decrypt_image(
+pub fn decrypt_image(
     basepath: PathBuf,
     filename: String,
-    key: String,
+    key: Vec<u8>,
     out_path: PathBuf,
 ) -> BackendResult<(), BackendError> {
     let rawdata = match fs::read(basepath.join(DIR_ENC).join(filename)) {
@@ -345,7 +365,9 @@ pub(crate) fn decrypt_image(
     {
         Some(v) => v,
         None => {
-            return Err(BackendError::GenericError("magic number not found".to_string()))
+            return Err(BackendError::GenericError(
+                "magic number not found".to_string(),
+            ))
         }
     };
 
@@ -362,7 +384,9 @@ pub(crate) fn decrypt_image(
     {
         Some(v) => v,
         None => {
-            return Err(BackendError::GenericError("magic number not found".to_string()));
+            return Err(BackendError::GenericError(
+                "magic number not found".to_string(),
+            ));
         }
     };
 
@@ -375,42 +399,64 @@ pub(crate) fn decrypt_image(
     let (_, apat_mid) = apat.split_at(6);
     let (apat_data, _) = apat_mid.split_at(apat_mid.len() - 6);
 
-    let (pat_key, apat_key): (GenericArray<u8, U32>, GenericArray<u8, U32>) = {
-        let secret = match BASE64.decode(key.as_bytes()) {
+    let (pat_key, apat_key): (GenericArray<u8, U32>, GenericArray<u8, U32>) =
+        match expand_secret_key(key) {
             Ok(v) => v,
-            Err(e) => return Err(BackendError::GenericError(format!("failed to decode key err: {}", e)))
+            Err(e) => {
+                return Err(BackendError::GenericError(format!(
+                    "failed to expand key err: {}",
+                    e
+                )))
+            }
         };
 
-        match expand_secret_key(secret) {
-            Ok(v) => v,
-            Err(e) => return Err(BackendError::GenericError(format!("failed to expand key err: {}", e)))
-        }
-    };
-
     let pat_img = match aes256_decrypt(pat_key, pat_data) {
-        Ok(v) => v, 
-        Err(e) => return Err(BackendError::GenericError(format!("failed to decrypt pattern img err: {}", e)))
+        Ok(v) => v,
+        Err(e) => {
+            return Err(BackendError::GenericError(format!(
+                "failed to decrypt pattern img err: {}",
+                e
+            )))
+        }
     };
 
     let pat_img = match image::load_from_memory_with_format(&pat_img, ImageFormat::Png) {
         Ok(v) => v,
-        Err(e) => return Err(BackendError::GenericError(format!("failed to load pattern img err: {}", e)))
+        Err(e) => {
+            return Err(BackendError::GenericError(format!(
+                "failed to load pattern img err: {}",
+                e
+            )))
+        }
     };
 
     let apat_img = match aes256_decrypt(apat_key, apat_data) {
-        Ok(v) => v, 
-        Err(e) => return Err(BackendError::GenericError(format!("failed to decrypt anti-pattern img err: {}", e)))
+        Ok(v) => v,
+        Err(e) => {
+            return Err(BackendError::GenericError(format!(
+                "failed to decrypt anti-pattern img err: {}",
+                e
+            )))
+        }
     };
 
     let apat_img = match image::load_from_memory_with_format(&apat_img, ImageFormat::Png) {
         Ok(v) => v,
-        Err(e) => return Err(BackendError::GenericError(format!("failed to load anti-pattern img err: {}", e)))
+        Err(e) => {
+            return Err(BackendError::GenericError(format!(
+                "failed to load anti-pattern img err: {}",
+                e
+            )))
+        }
     };
 
     let actual_data = combine_image(pat_img, apat_img);
 
     match actual_data.save_with_format(out_path, img_type) {
         Ok(_) => Ok(()),
-        Err(e) => Err(BackendError::DataIntegrityError(format!("failed to save img err: {}", e)))
+        Err(e) => Err(BackendError::DataIntegrityError(format!(
+            "failed to save img err: {}",
+            e
+        ))),
     }
 }
