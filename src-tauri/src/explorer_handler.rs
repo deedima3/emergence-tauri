@@ -79,14 +79,15 @@ pub async fn handle_get_all_file(
         })
     }
 
+
     let mut res: Vec<FileMetaResponse> = Vec::new();
     for d in data {
         res.push(FileMetaResponse {
             id: d.id,
             folder_id: d.folder_id,
             name: d.name,
-            encrypted_at: d.encrypted_at.format("%Y-%m-%d %H:%M:%S").to_string(),
-            accessed_at: d.accessed_at.format("%Y-%m-%d %H:%M:%S").to_string(),
+            encrypted_at: d.encrypted_at,
+            accessed_at: d.accessed_at,
             file_uid: d.file_uid.clone(),
             file_ext: d.file_ext.clone(),
             thumbnail: app_dir.join(DIR_THUMBNAILS).join(format!("{}_{}.{}", d.folder_id, d.file_uid, d.file_ext))
@@ -137,8 +138,8 @@ pub async fn handle_get_file(
         id: res.id,
         folder_id: res.folder_id,
         name: res.name,
-        encrypted_at: res.encrypted_at.format("%Y-%m-%d %H:%M:%S").to_string(),
-        accessed_at: res.accessed_at.format("%Y-%m-%d %H:%M:%S").to_string(),
+        encrypted_at: res.encrypted_at,
+        accessed_at: res.accessed_at,
         file_uid: res.file_uid.clone(),
         file_ext: res.file_ext.clone(),
         thumbnail: app_dir.join(DIR_THUMBNAILS).join(format!("{}_{}.{}", res.folder_id, res.file_uid, res.file_ext))

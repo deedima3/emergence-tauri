@@ -24,6 +24,17 @@ pub async fn handle_encrypt_data(
         keystore.get_secret_key()
     };
 
+    let mut db_lock = cfg_state.db.lock().unwrap();
+    let conn;
+
+    if let Some(v) = &mut *db_lock {
+        conn = v;
+    } else {
+        return Err(BackendError::GenericError(
+            "cannot connect to db".to_string(),
+        ));
+    };
+
     if !payload.path.exists() {
         debug!("{}: bruh", payload.name);
         return Err(BackendError::GenericError(
@@ -47,16 +58,6 @@ pub async fn handle_encrypt_data(
             return Err(BackendError::GenericError(
                 "appdata dir should be exists".to_string(),
             ));
-        }
-    };
-
-    let db = &mut *cfg_state.db.lock().unwrap();
-    let conn = match db {
-        Some(v) => v,
-        None => {
-            return Err(BackendError::GenericError(
-                "cannot connect to db".to_string(),
-            ))
         }
     };
 
@@ -132,15 +133,17 @@ pub async fn handle_decrypt_data(
         }
     };
 
-    let db = &mut *cfg_state.db.lock().unwrap();
-    let conn = match db {
-        Some(v) => v,
-        None => {
-            return Err(BackendError::GenericError(
-                "cannot connect to db".to_string(),
-            ))
-        }
+    let mut db_lock = cfg_state.db.lock().unwrap();
+    let conn;
+
+    if let Some(v) = &mut *db_lock {
+        conn = v;
+    } else {
+        return Err(BackendError::GenericError(
+            "cannot connect to db".to_string(),
+        ));
     };
+
 
     let tx = conn.transaction().unwrap();
     let res = match tx.query_row(
@@ -150,8 +153,8 @@ pub async fn handle_decrypt_data(
             Ok(EmDataDir {
                 id: 0,
                 name: "".to_string(),
-                accessed_at: chrono::Utc::now(),
-                encrypted_at: chrono::Utc::now(),
+                accessed_at: chrono::Utc::now().to_string(),
+                encrypted_at: chrono::Utc::now().to_string(),
                 folder_id: r.get(0).unwrap(),
                 file_uid: r.get(1).unwrap(),
                 file_ext: r.get(2).unwrap(),

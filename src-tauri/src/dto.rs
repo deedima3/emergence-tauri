@@ -59,8 +59,10 @@ pub struct EmDataDir {
     pub name: String,
     pub file_uid: String,
     pub file_ext: String,
-    pub accessed_at: chrono::DateTime<chrono::Utc>,
-    pub encrypted_at: chrono::DateTime<chrono::Utc>
+    pub accessed_at: String,
+    pub encrypted_at: String
+    // pub accessed_at: chrono::DateTime<chrono::Utc>,
+    // pub encrypted_at: chrono::DateTime<chrono::Utc>
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]
