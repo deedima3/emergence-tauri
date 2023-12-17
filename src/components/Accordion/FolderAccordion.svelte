@@ -1,14 +1,23 @@
 <script lang="ts">
   import {
+    changeRenameFolder,
     explorerStore,
     folderQuery,
     pushHistory,
+    renameFolderStore,
   } from "@/stores/explorerStore";
   import ChevronDown from "../Icons/ChevronDown.svelte";
   import FolderOpen from "../Icons/FolderOpen.svelte";
   import ChevronUp from "../Icons/ChevronUp.svelte";
   import Folder from "../Icons/Folder.svelte";
   import FolderItem from "./FolderItem.svelte";
+  import { createMutationForm } from "@/hooks/createMutationForm";
+  import CustomInput from "../Input/CustomInput.svelte";
+  import { updateFolder } from "@/api/explorer";
+  import { renameSchema } from "@/constant/schema";
+  import { contextFileStore } from "@/stores/explorerStore";
+  import LoadingPulse from "../Loading/LoadingPulse.svelte";
+  import LoginButton from "../Button/LoginButton.svelte";
 
   export let folderName: string;
   export let folderID: number;
@@ -55,6 +64,25 @@
     draggedTo = false;
   };
 
+  const {
+    form: { form },
+    mutation: { mutation },
+  } = createMutationForm({
+    mutationApi: (data: { name: string }) => {
+      console.log("Data", data);
+      console.log("FID", folderID);
+      updateFolder(folderID, data.name);
+    },
+    formSchema: renameSchema,
+    actionName: "Login",
+    successFn: () => {
+      changeRenameFolder(0);
+    },
+    errorFn: () => {
+      changeRenameFolder(0);
+    },
+  });
+
   $: isSelected =
     $explorerStore.historyID[$explorerStore.selectedID] == folderID;
   $: console.log(isSelected);
@@ -79,17 +107,28 @@
         <Folder />
       {/if}
     </button>
-    <p
-      class={`text-lg text-white text-poppins ${isSelected ? "font-bold" : ""}`}
-    >
-      {folderName}
-    </p>
+    {#if $renameFolderStore.folderID == folderID}
+      <form use:form>
+        <CustomInput name="name" />
+        <LoginButton />
+      </form>
+    {:else}
+      <p
+        class={`text-lg text-white text-poppins ${
+          isSelected ? "font-bold" : ""
+        }`}
+      >
+        {folderName}
+      </p>
+    {/if}
   </div>
   {#if isSelected && folderQuery && $folderQuery.data}
-    <div class="flex gap-2 ml-2">
+    <div class="flex flex-col gap-2 ml-2">
       {#each $folderQuery.data?.files as file}
         <FolderItem fileID={file.id} filename={file.name} />
       {/each}
     </div>
   {/if}
 </div>
+
+<LoadingPulse isLoading={$mutation.isPending} />

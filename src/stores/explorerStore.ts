@@ -1,5 +1,8 @@
 import { getAllFolder, getFolderFileByFolderID, getMetaByFileID } from "@/api/explorer"
+import { reporter } from "@felte/reporter-svelte"
+import { validator } from "@felte/validator-zod"
 import { QueryClient, QueryObserver } from "@tanstack/svelte-query"
+import { createForm } from "felte"
 import toast from "svelte-french-toast"
 import { get, writable, type Writable } from "svelte/store"
 
@@ -26,6 +29,10 @@ const fileMetaStore : Writable<FileMetaStore> = writable({
 })
 
 const contextFileStore:  Writable<ContextFolderStore> = writable({
+    folderID : 0
+})
+
+const renameFolderStore: Writable<ContextFolderStore> = writable({
     folderID : 0
 })
 
@@ -75,11 +82,16 @@ const pushHistory = (newID : number) => {
             historyID : tempArray,
             selectedID : get(explorerStore).selectedID + 1
         })
+    } else {
+        explorerStore.set({
+            historyID : [...get(explorerStore).historyID, 0],
+            selectedID : get(explorerStore).selectedID + 1
+        })
     }
 }
 
 const onBack = () => {
-    if(get(fileMetaStore).selectedFileID != 0){
+    if(get(explorerStore).selectedID != 0){
         explorerStore.set({
             historyID : get(explorerStore).historyID,
             selectedID : get(explorerStore).selectedID - 1
@@ -112,6 +124,12 @@ const changeSelectedFile = (id : number) => {
             selectedFileID : 0
         })
     }
+}
+
+const changeRenameFolder = (id : number) => {
+    renameFolderStore.set({
+        folderID : id
+    })
 }
 
 explorerStore.subscribe(() => {
@@ -151,5 +169,7 @@ export {
     fileMetaQuery,
     allFolderQuery, 
     setContextFolderID,
-    contextFileStore
+    contextFileStore,
+    renameFolderStore,
+    changeRenameFolder
 }

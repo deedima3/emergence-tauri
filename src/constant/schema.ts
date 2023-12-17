@@ -23,6 +23,10 @@ const loginSchema = z.object({
 
   const registerSchema = z.union([registerSchemaWithKey, registerSchemaWithoutKey])
 
+  const renameSchema = z.object({
+    name : z.string().nonempty("Nama Folder harus diisi!"),
+  })
+
   export {
-    registerSchema, loginSchema
+    registerSchema, loginSchema, renameSchema
   }

@@ -5,7 +5,7 @@
   import { open } from "@tauri-apps/api/dialog";
   import { uploadFile } from "@/api/explorer";
   import { first, last } from "radash";
-  import { contextFileStore } from "@/stores/explorerStore";
+  import { changeRenameFolder, contextFileStore } from "@/stores/explorerStore";
   import toast from "svelte-french-toast";
   import Edit from "../Icons/Edit.svelte";
 
@@ -38,7 +38,7 @@
     });
     await uploadFile({
       path: selected as string,
-      name: last((selected as string).split("/")) as string,
+      name: last((selected as string).split(`\\`)) as string,
       folder_id: $contextFileStore.folderID,
     });
     toast.success("File berhasil diupload!");
@@ -62,7 +62,10 @@
           <DocumentUpload />
           <p>Add New File</p>
         </button>
-        <button class="text-white flex gap-2">
+        <button
+          class="text-white flex gap-2"
+          on:click={() => changeRenameFolder($contextFileStore.folderID)}
+        >
           <Edit />
           <p>Rename Folder</p>
         </button>
