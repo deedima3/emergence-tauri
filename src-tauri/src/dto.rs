@@ -112,5 +112,6 @@ pub struct ListFileMetaResponse {
 pub struct FileMetaRequest {
     pub folder_id: u64,
     pub id: String,
+    pub name: String,
 }
 

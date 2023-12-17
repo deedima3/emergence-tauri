@@ -19,7 +19,7 @@ const getAllFolder = async (): Promise<ListFolderResponse> => {
     }
 }
 
-const getMetaByFileID = async (id : string | number): Promise<FileMetaResponse> => {
+const getMetaByFileID = async (id: string ): Promise<FileMetaResponse> => {
     try {
         return await invoke('handle_get_file', {payload: {id: id}})
     } catch (e) {
@@ -28,7 +28,7 @@ const getMetaByFileID = async (id : string | number): Promise<FileMetaResponse> 
     }
 }
 
-const getFolderFileByFolderID = async (id : string | number) => {
+const getFolderFileByFolderID = async (id:  number) => {
     try {
         return await invoke('handle_get_all_file', {payload: {folder_id: id}})
     } catch (e) {
@@ -55,11 +55,31 @@ const createNewFolder = async (name: string) => {
     }
 }
 
+const updateFolder = async (id: number, name: string) => {
+    try {
+        await invoke('handle_update_folder', {payload: {folder_id: id, name: name}})
+    } catch (e) {
+        console.log('rust-err', e);
+        return Promise.reject(Error(e as string))
+    }
+}
+
+const updateFile = async (id: string, name: string) => {
+    try {
+        await invoke('handle_update_file', {payload: {id: id, name: name}})
+    } catch (e) {
+        console.log('rust-err', e);
+        return Promise.reject(Error(e as string))
+    }
+}
+
 export {
     uploadFile,
     getAllFolder,
     getMetaByFileID,
     getFolderFileByFolderID,
     downloadFile,
-    createNewFolder
+    createNewFolder,
+    updateFile,
+    updateFolder
 }

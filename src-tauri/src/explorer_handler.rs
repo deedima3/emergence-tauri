@@ -148,7 +148,7 @@ pub async fn handle_get_file(
 #[tauri::command]
 pub async fn handle_create_folder(
     cfg_state: tauri::State<'_, ConfigStore>,
-    payload: FolderResponse,
+    payload: FileMetaRequest,
 ) -> BackendResult<(), BackendError> {
     let db = &mut *cfg_state.db.lock().unwrap();
     let conn = match db {
@@ -159,6 +159,50 @@ pub async fn handle_create_folder(
     match conn.execute(
         "insert into em_folders(name) values (:name)",
         &[(":name", &payload.name)]) {
+        Ok(v) => v, 
+        Err(_) => return Err(BackendError::DataIntegrityError("data not found".to_string()))
+    };
+
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn handle_update_folder(
+    cfg_state: tauri::State<'_, ConfigStore>,
+    payload: FileMetaRequest,
+) -> BackendResult<(), BackendError> {
+    let db = &mut *cfg_state.db.lock().unwrap();
+    let conn = match db {
+        Some(v) => v,
+        None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
+    };
+
+    match conn.execute(
+        "update em_folders set name = :name where id = :id)",
+        &[(":name", &payload.name), (":id", &payload.folder_id.to_string())]) {
+        Ok(v) => v, 
+        Err(_) => return Err(BackendError::DataIntegrityError("data not found".to_string()))
+    };
+
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn handle_update_file(
+    cfg_state: tauri::State<'_, ConfigStore>,
+    payload: FileMetaRequest,
+) -> BackendResult<(), BackendError> {
+    let db = &mut *cfg_state.db.lock().unwrap();
+    let conn = match db {
+        Some(v) => v,
+        None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
+    };
+
+    match conn.execute(
+        "update em_data_dir set name = :name where file_uid = :file_id",
+        &[(":name", &payload.name), (":file_id", &payload.id)]) {
         Ok(v) => v, 
         Err(_) => return Err(BackendError::DataIntegrityError("data not found".to_string()))
     };
