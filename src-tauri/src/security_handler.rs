@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, path::PathBuf, str::FromStr};
 
 use log::debug;
 use rusqlite::named_params;
@@ -71,7 +71,7 @@ pub async fn handle_encrypt_data(
         ",
         named_params! {
             ":folder_id": payload.folder_id,
-            ":name": payload.name,
+            ":name": PathBuf::from_str(&payload.name).unwrap().file_name().unwrap().to_str(),
             ":file_uid": file_uid.to_string(),
             ":file_ext": payload.path.extension().unwrap().to_str().unwrap(),
         },
