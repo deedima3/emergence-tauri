@@ -11,8 +11,8 @@
   import FolderItem from "./FolderItem.svelte";
 
   export let folderName: string;
-  export let folderID: string | number;
-  export let onContextMenu: (e: MouseEvent, folderID: string | number) => void;
+  export let folderID: number;
+  export let onContextMenu: (e: MouseEvent, folderID: number) => void;
 
   let draggedTo = false;
 

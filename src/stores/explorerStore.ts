@@ -4,12 +4,16 @@ import toast from "svelte-french-toast"
 import { get, writable, type Writable } from "svelte/store"
 
 type ExplorerStore = {
-    historyID : (string | number)[];
+    historyID : number[];
     selectedID : number;
 }
 
 type FileMetaStore = {
     selectedFileID : number
+}
+
+type ContextFolderStore = {
+    folderID : number
 }
 
 const explorerStore : Writable<ExplorerStore> = writable({
@@ -20,6 +24,11 @@ const explorerStore : Writable<ExplorerStore> = writable({
 const fileMetaStore : Writable<FileMetaStore> = writable({
     selectedFileID : 0
 })
+
+const contextFileStore:  Writable<ContextFolderStore> = writable({
+    folderID : 0
+})
+
 
 const queryOption = {
     queryKey : ["file-folder", get(explorerStore).historyID[get(explorerStore).selectedID]],
@@ -53,7 +62,13 @@ const folderQuery = new QueryObserver(client, queryOption);
 const fileMetaQuery = new QueryObserver(client, fileMetaQueryOptions)
 const allFolderQuery = new QueryObserver(client, allFolderOptions)
 
-const pushHistory = (newID : string | number) => {
+const setContextFolderID = (id : number) => {
+    contextFileStore.set({
+        folderID : id
+    })
+}
+
+const pushHistory = (newID : number) => {
     let tempArray = [...get(explorerStore).historyID, newID]
     explorerStore.set({
         historyID : tempArray,
@@ -119,6 +134,10 @@ fileMetaStore.subscribe((value) => {
     console.log(value)
 })
 
+contextFileStore.subscribe((value) => {
+    console.log(value)
+})
+
 
 export {
     explorerStore,
@@ -128,5 +147,7 @@ export {
     changeSelectedFile,
     folderQuery,
     fileMetaQuery,
-    allFolderQuery
+    allFolderQuery, 
+    setContextFolderID,
+    contextFileStore
 }

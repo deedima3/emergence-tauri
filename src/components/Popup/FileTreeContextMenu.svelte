@@ -3,6 +3,10 @@
   import DocumentUpload from "../Icons/DocumentUpload.svelte";
   import FolderOpen from "../Icons/FolderOpen.svelte";
   import { open } from "@tauri-apps/api/dialog";
+  import { uploadFile } from "@/api/explorer";
+  import { first, last } from "radash";
+  import { contextFileStore } from "@/stores/explorerStore";
+  import toast from "svelte-french-toast";
 
   // pos is cursor position when right click occur
   export let pos = { x: 0, y: 0 };
@@ -26,17 +30,20 @@
   }
 
   const handleAddFile = async () => {
+    console.log("selected");
     const selected = await open({
-      multiple: true,
-      filters: [
-        {
-          name: "Image",
-          extensions: ["png", "jpeg"],
-        },
-      ],
+      multiple: false,
+      filters: [],
     });
-    console.log(selected);
+    await uploadFile({
+      path: selected as string,
+      name: last((selected as string).split("/")) as string,
+      folder_id: $contextFileStore.folderID,
+    });
+    toast.success("File berhasil diupload!");
   };
+
+  const handleRenameFolder = () => {};
 </script>
 
 {#if showMenu}
@@ -49,9 +56,8 @@
     >
       <div
         class="bg-main w-max h-full px-5 text-white py-2 rounded-md shadow-md flex flex-col gap-3"
-        id="navbar"
       >
-        <button class="text-white flex gap-2" on:click={() => handleAddFile}>
+        <button class="text-white flex gap-2" on:click={() => handleAddFile()}>
           <DocumentUpload />
           <p>Add New File</p>
         </button>

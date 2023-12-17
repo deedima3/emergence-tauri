@@ -1,6 +1,6 @@
 <script lang="ts">
   import FolderAccordion from "../Accordion/FolderAccordion.svelte";
-  import { allFolderQuery } from "@/stores/explorerStore";
+  import { allFolderQuery, setContextFolderID } from "@/stores/explorerStore";
   import FileTreeContextMenu from "../Popup/FileTreeContextMenu.svelte";
 
   let showMenu = false;
@@ -11,8 +11,9 @@
   // browser/window dimension (height and width)
   let browser = { h: 0, y: 0 };
 
-  const onContextMenu = (e: MouseEvent, folderID: string | number) => {
+  const onContextMenu = (e: MouseEvent, folderID: number) => {
     rightClickContextMenu(e);
+    setContextFolderID(folderID);
   };
 
   function rightClickContextMenu(e) {

@@ -10,7 +10,7 @@ export interface AuthPayload {
 export interface ImageEncryptPayload {
     path: string // full path to original img
     name: string // filename (including extensions)
-    folder_id: string
+    folder_id: number
     thumbnail?: string // optional. if null, no custom thumbnail will be used
 }
 

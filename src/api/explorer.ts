@@ -20,7 +20,7 @@ const getAllFolder = async (): Promise<ListFolderResponse> => {
     }
 }
 
-const getMetaByFileID = async (id: string ): Promise<FileMetaResponse> => {
+const getMetaByFileID = async (id: number ): Promise<FileMetaResponse> => {
     try {
         return await invoke('handle_get_file', {payload: {id: id}})
     } catch (e) {
