@@ -28,7 +28,9 @@ use explorer_handler::{
     handle_get_file,
     handle_create_folder,
     handle_update_file,
-    handle_update_folder
+    handle_update_folder,
+    handle_delete_file,
+    handle_delete_folder
 };
 use auth_handler::handle_auth;
 use tauri::{utils::config::AppUrl, Manager, State, WindowUrl, Window};
@@ -83,6 +85,8 @@ async fn main() {
             handle_create_folder,
             handle_update_file,
             handle_update_folder,
+            handle_delete_file,
+            handle_delete_folder,
             open_splashscreen, 
             close_splashscreen
         ])

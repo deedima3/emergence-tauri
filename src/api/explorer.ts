@@ -76,6 +76,24 @@ const updateFile = async (id: string, name: string) => {
     }
 }
 
+const deleteFolder = async (id: number, name: string) => {
+    try {
+        await invoke('handle_delete_folder', {payload: {folder_id: id, name: name}})
+    } catch (e) {
+        console.log('rust-err', e);
+        return Promise.reject(Error(e as string))
+    }
+}
+
+const deleteFile = async (id: string, name: string) => {
+    try {
+        await invoke('handle_delete_file', {payload: {id: id, name: name}})
+    } catch (e) {
+        console.log('rust-err', e);
+        return Promise.reject(Error(e as string))
+    }
+}
+
 export {
     uploadFile,
     getAllFolder,
@@ -84,5 +102,7 @@ export {
     downloadFile,
     createNewFolder,
     updateFile,
-    updateFolder
+    updateFolder,
+    deleteFile,
+    deleteFolder
 }

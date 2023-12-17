@@ -1,8 +1,13 @@
+use std::fs;
+
 use log::debug;
 
 use crate::{
     config_store::ConfigStore,
-    dto::{FolderResponse, ListFolderResponse, EmDataDir, FileMetaResponse, ListFileMetaResponse, DIR_THUMBNAILS, FileMetaRequest},
+    dto::{
+        EmDataDir, FileMetaRequest, FileMetaResponse, FolderResponse, ListFileMetaResponse,
+        ListFolderResponse, DIR_THUMBNAILS, DIR_ENC,
+    },
     error::{BackendError, BackendResult},
 };
 
@@ -13,7 +18,11 @@ pub async fn handle_get_all_folder(
     let db = &mut *cfg_state.db.lock().unwrap();
     let conn = match db {
         Some(v) => v,
-        None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
+        None => {
+            return Err(BackendError::GenericError(
+                "cannot connect to db".to_string(),
+            ))
+        }
     };
 
     let mut stmt = conn
@@ -29,13 +38,13 @@ pub async fn handle_get_all_folder(
         .next()
         .map_err(|e| BackendError::GenericError(e.to_string()))?
     {
-        res.push(FolderResponse{
+        res.push(FolderResponse {
             id: row.get(0).unwrap(),
             name: row.get(1).unwrap(),
         })
     }
 
-    Ok(ListFolderResponse{folders: res})
+    Ok(ListFolderResponse { folders: res })
 }
 
 #[tauri::command]
@@ -47,14 +56,20 @@ pub async fn handle_get_all_file(
     let app_dir = match app_handle.path_resolver().app_data_dir() {
         Some(v) => v,
         None => {
-            return Err(BackendError::GenericError("appdata dir should be exists".to_string()))
+            return Err(BackendError::GenericError(
+                "appdata dir should be exists".to_string(),
+            ))
         }
     };
 
     let db = &mut *cfg_state.db.lock().unwrap();
     let conn = match db {
         Some(v) => v,
-        None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
+        None => {
+            return Err(BackendError::GenericError(
+                "cannot connect to db".to_string(),
+            ))
+        }
     };
 
     let mut stmt = conn
@@ -70,7 +85,7 @@ pub async fn handle_get_all_file(
         .next()
         .map_err(|e| BackendError::GenericError(e.to_string()))?
     {
-        data.push(EmDataDir{
+        data.push(EmDataDir {
             id: row.get(0).unwrap(),
             folder_id: row.get(1).unwrap(),
             name: row.get(2).unwrap(),
@@ -80,7 +95,6 @@ pub async fn handle_get_all_file(
             file_ext: row.get(6).unwrap(),
         })
     }
-
 
     let mut res: Vec<FileMetaResponse> = Vec::new();
     for d in data {
@@ -92,11 +106,13 @@ pub async fn handle_get_all_file(
             accessed_at: d.accessed_at,
             file_uid: d.file_uid.clone(),
             file_ext: d.file_ext.clone(),
-            thumbnail: app_dir.join(DIR_THUMBNAILS).join(format!("{}_{}.{}", d.folder_id, d.file_uid, d.file_ext))
-        })   
+            thumbnail: app_dir
+                .join(DIR_THUMBNAILS)
+                .join(format!("{}_{}.{}", d.folder_id, d.file_uid, d.file_ext)),
+        })
     }
 
-    Ok(ListFileMetaResponse{files: res})
+    Ok(ListFileMetaResponse { files: res })
 }
 
 #[tauri::command]
@@ -108,33 +124,44 @@ pub async fn handle_get_file(
     let app_dir = match app_handle.path_resolver().app_data_dir() {
         Some(v) => v,
         None => {
-            return Err(BackendError::GenericError("appdata dir should be exists".to_string()))
+            return Err(BackendError::GenericError(
+                "appdata dir should be exists".to_string(),
+            ))
         }
     };
 
     let db = &mut *cfg_state.db.lock().unwrap();
     let conn = match db {
         Some(v) => v,
-        None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
+        None => {
+            return Err(BackendError::GenericError(
+                "cannot connect to db".to_string(),
+            ))
+        }
     };
 
     let res = match conn.query_row(
         "select folder_id, file_uid, file_ext from em_data_dir where file_uid = :id",
         &[(":id", &payload.id)],
-        |row| Ok(EmDataDir{
-            id: row.get(0).unwrap(),
-            folder_id: row.get(1).unwrap(),
-            name: row.get(2).unwrap(),
-            encrypted_at: row.get(3).unwrap(),
-            accessed_at: row.get(4).unwrap(),
-            file_uid: row.get(5).unwrap(),
-            file_ext: row.get(6).unwrap(),
-        }),
+        |row| {
+            Ok(EmDataDir {
+                id: row.get(0).unwrap(),
+                folder_id: row.get(1).unwrap(),
+                name: row.get(2).unwrap(),
+                encrypted_at: row.get(3).unwrap(),
+                accessed_at: row.get(4).unwrap(),
+                file_uid: row.get(5).unwrap(),
+                file_ext: row.get(6).unwrap(),
+            })
+        },
     ) {
-        Ok(v) => v, 
-        Err(_) => return Err(BackendError::DataIntegrityError("data not found".to_string()))
+        Ok(v) => v,
+        Err(_) => {
+            return Err(BackendError::DataIntegrityError(
+                "data not found".to_string(),
+            ))
+        }
     };
-
 
     Ok(FileMetaResponse {
         id: res.id,
@@ -144,7 +171,10 @@ pub async fn handle_get_file(
         accessed_at: res.accessed_at,
         file_uid: res.file_uid.clone(),
         file_ext: res.file_ext.clone(),
-        thumbnail: app_dir.join(DIR_THUMBNAILS).join(format!("{}_{}.{}", res.folder_id, res.file_uid, res.file_ext))
+        thumbnail: app_dir.join(DIR_THUMBNAILS).join(format!(
+            "{}_{}.{}",
+            res.folder_id, res.file_uid, res.file_ext
+        )),
     })
 }
 
@@ -156,16 +186,24 @@ pub async fn handle_create_folder(
     let db = &mut *cfg_state.db.lock().unwrap();
     let conn = match db {
         Some(v) => v,
-        None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
+        None => {
+            return Err(BackendError::GenericError(
+                "cannot connect to db".to_string(),
+            ))
+        }
     };
 
     match conn.execute(
         "insert into em_folders(name) values (:name)",
-        &[(":name", &payload.name)]) {
-        Ok(v) => v, 
-        Err(_) => return Err(BackendError::DataIntegrityError("data not found".to_string()))
+        &[(":name", &payload.name)],
+    ) {
+        Ok(v) => v,
+        Err(_) => {
+            return Err(BackendError::DataIntegrityError(
+                "data not found".to_string(),
+            ))
+        }
     };
-
 
     Ok(())
 }
@@ -178,18 +216,30 @@ pub async fn handle_update_folder(
     let db = &mut *cfg_state.db.lock().unwrap();
     let conn = match db {
         Some(v) => v,
-        None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
+        None => {
+            return Err(BackendError::GenericError(
+                "cannot connect to db".to_string(),
+            ))
+        }
     };
 
     debug!("{} {}", payload.folder_id, payload.name);
 
     match conn.execute(
         "update em_folders set name = :name where id = :id",
-        &[(":name", &payload.name), (":id", &payload.folder_id.to_string())]) {
-        Ok(v) => v, 
-        Err(e) => return Err(BackendError::DataIntegrityError(format!("data not found err: {}", e)))
+        &[
+            (":name", &payload.name),
+            (":id", &payload.folder_id.to_string()),
+        ],
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            return Err(BackendError::DataIntegrityError(format!(
+                "data not found err: {}",
+                e
+            )))
+        }
     };
-
 
     Ok(())
 }
@@ -202,16 +252,140 @@ pub async fn handle_update_file(
     let db = &mut *cfg_state.db.lock().unwrap();
     let conn = match db {
         Some(v) => v,
-        None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
+        None => {
+            return Err(BackendError::GenericError(
+                "cannot connect to db".to_string(),
+            ))
+        }
     };
 
     match conn.execute(
         "update em_data_dir set name = :name where file_uid = :file_id",
-        &[(":name", &payload.name), (":file_id", &payload.id)]) {
-        Ok(v) => v, 
-        Err(e) => return Err(BackendError::DataIntegrityError(format!("data not found err: {}", e)))
+        &[(":name", &payload.name), (":file_id", &payload.id)],
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            return Err(BackendError::DataIntegrityError(format!(
+                "data not found err: {}",
+                e
+            )))
+        }
     };
 
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn handle_delete_folder(
+    cfg_state: tauri::State<'_, ConfigStore>,
+    payload: FileMetaRequest,
+) -> BackendResult<(), BackendError> {
+    let db = &mut *cfg_state.db.lock().unwrap();
+    let conn = match db {
+        Some(v) => v,
+        None => {
+            return Err(BackendError::GenericError(
+                "cannot connect to db".to_string(),
+            ))
+        }
+    };
+
+    debug!("{} {}", payload.folder_id, payload.name);
+
+    match conn.execute(
+        "delete em_folders where id = :id",
+        &[(":id", &payload.folder_id.to_string())],
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            return Err(BackendError::DataIntegrityError(format!(
+                "data not found err: {}",
+                e
+            )))
+        }
+    };
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn handle_delete_file(
+    app_handle: tauri::AppHandle,
+    cfg_state: tauri::State<'_, ConfigStore>,
+    payload: FileMetaRequest,
+) -> BackendResult<(), BackendError> {
+    let db = &mut *cfg_state.db.lock().unwrap();
+    let conn = match db {
+        Some(v) => v,
+        None => {
+            return Err(BackendError::GenericError(
+                "cannot connect to db".to_string(),
+            ))
+        }
+    };
+
+    let app_dir = match app_handle.path_resolver().app_data_dir() {
+        Some(v) => v,
+        None => {
+            return Err(BackendError::GenericError(
+                "appdata dir should be exists".to_string(),
+            ))
+        }
+    };
+
+    let res = match conn.query_row(
+        "select folder_id, file_uid, file_ext from em_data_dir where file_uid = :id",
+        &[(":id", &payload.id)],
+        |row| {
+            Ok(EmDataDir {
+                id: row.get(0).unwrap(),
+                folder_id: row.get(1).unwrap(),
+                name: row.get(2).unwrap(),
+                encrypted_at: row.get(3).unwrap(),
+                accessed_at: row.get(4).unwrap(),
+                file_uid: row.get(5).unwrap(),
+                file_ext: row.get(6).unwrap(),
+            })
+        },
+    ) {
+        Ok(v) => v,
+        Err(_) => {
+            return Err(BackendError::DataIntegrityError(
+                "data not found".to_string(),
+            ))
+        }
+    };
+
+    match fs::remove_file(app_dir.join(DIR_ENC).join(format!("{}_{}.{}", res.folder_id, res.file_uid, res.file_ext))) {
+        Ok(v) => v,
+        Err(_) => {
+            return Err(BackendError::DataIntegrityError(
+                "data not found".to_string(),
+            ))
+        }
+    };
+
+    match fs::remove_file(app_dir.join(DIR_THUMBNAILS).join(format!("{}_{}.{}", res.folder_id, res.file_uid, res.file_ext))) {
+        Ok(v) => v,
+        Err(_) => {
+            return Err(BackendError::DataIntegrityError(
+                "data not found".to_string(),
+            ))
+        }
+    };
+
+    match conn.execute(
+        "delete em_data_dir where id = :id",
+        &[(":id", &payload.folder_id.to_string())],
+    ) {
+        Ok(v) => v,
+        Err(e) => {
+            return Err(BackendError::DataIntegrityError(format!(
+                "data not found err: {}",
+                e
+            )))
+        }
+    };
 
     Ok(())
 }
