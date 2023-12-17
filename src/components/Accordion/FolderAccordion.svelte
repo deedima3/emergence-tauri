@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    allFolderQuery,
     changeRenameFolder,
     explorerStore,
     folderQuery,
@@ -15,9 +16,7 @@
   import CustomInput from "../Input/CustomInput.svelte";
   import { updateFolder } from "@/api/explorer";
   import { renameSchema } from "@/constant/schema";
-  import { contextFileStore } from "@/stores/explorerStore";
   import LoadingPulse from "../Loading/LoadingPulse.svelte";
-  import LoginButton from "../Button/LoginButton.svelte";
 
   export let folderName: string;
   export let folderID: number;
@@ -74,12 +73,14 @@
       updateFolder(folderID, data.name);
     },
     formSchema: renameSchema,
-    actionName: "Login",
+    actionName: "Update folder name",
     successFn: () => {
       changeRenameFolder(0);
+      allFolderQuery.refetch();
     },
     errorFn: () => {
       changeRenameFolder(0);
+      allFolderQuery.refetch();
     },
   });
 
@@ -110,7 +111,7 @@
     {#if $renameFolderStore.folderID == folderID}
       <form use:form>
         <CustomInput name="name" />
-        <LoginButton />
+        <input type="submit" style="display: none" />
       </form>
     {:else}
       <p
