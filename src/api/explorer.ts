@@ -1,5 +1,5 @@
 import { allFolderQuery, folderQuery } from "@/stores/explorerStore";
-import type { FileMetaResponse, ImageDecryptPayload, ImageEncryptPayload, ListFolderResponse } from "@/types/rust.types";
+import type { FileMetaResponse, ImageDecryptPayload, ImageEncryptPayload, ListFileMetaResponse, ListFolderResponse } from "@/types/rust.types";
 import { invoke } from "@tauri-apps/api";
 
 const uploadFile = async (encPayload: ImageEncryptPayload) => {
@@ -29,7 +29,7 @@ const getMetaByFileID = async (id: number ): Promise<FileMetaResponse> => {
     }
 }
 
-const getFolderFileByFolderID = async (id:  number) => {
+const getFolderFileByFolderID = async (id:  number) : Promise<ListFileMetaResponse> => {
     try {
         return await invoke('handle_get_all_file', {payload: {folder_id: id}})
     } catch (e) {

@@ -18,7 +18,7 @@ type ContextFolderStore = {
 
 const explorerStore : Writable<ExplorerStore> = writable({
     historyID : [],
-    selectedID : 0,
+    selectedID : - 1,
 })
 
 const fileMetaStore : Writable<FileMetaStore> = writable({
@@ -70,10 +70,12 @@ const setContextFolderID = (id : number) => {
 
 const pushHistory = (newID : number) => {
     let tempArray = [...get(explorerStore).historyID, newID]
-    explorerStore.set({
-        historyID : tempArray,
-        selectedID : get(explorerStore).selectedID + 1
-    })
+    if(!(newID == get(explorerStore).historyID[get(explorerStore).selectedID])){
+        explorerStore.set({
+            historyID : tempArray,
+            selectedID : get(explorerStore).selectedID + 1
+        })
+    }
 }
 
 const onBack = () => {

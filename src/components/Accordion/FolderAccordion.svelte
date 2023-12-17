@@ -57,6 +57,7 @@
 
   $: isSelected =
     $explorerStore.historyID[$explorerStore.selectedID] == folderID;
+  $: console.log(isSelected);
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -84,10 +85,10 @@
       {folderName}
     </p>
   </div>
-  {#if isSelected && folderQuery}
+  {#if isSelected && folderQuery && $folderQuery.data}
     <div class="flex gap-2 ml-2">
-      {#each $folderQuery.data as file}
-        <FolderItem fileID={file.id} filename={file.filename} />
+      {#each $folderQuery.data?.files as file}
+        <FolderItem fileID={file.id} filename={file.name} />
       {/each}
     </div>
   {/if}
