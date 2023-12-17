@@ -12,7 +12,7 @@ type ExplorerStore = {
 }
 
 type FileMetaStore = {
-    selectedFileID : number
+    selectedFileUID : string
 }
 
 type ContextFolderStore = {
@@ -25,7 +25,7 @@ const explorerStore : Writable<ExplorerStore> = writable({
 })
 
 const fileMetaStore : Writable<FileMetaStore> = writable({
-    selectedFileID : 0
+    selectedFileUID : "0"
 })
 
 const contextFileStore:  Writable<ContextFolderStore> = writable({
@@ -47,15 +47,15 @@ const queryOption = {
     enabled : get(explorerStore).historyID[get(explorerStore).selectedID] != 0
 }
 
-const fileMetaQueryOptions = {
-    queryKey : ["file-meta", get(fileMetaStore).selectedFileID],
-    queryFn : () => {
-        return getMetaByFileID(
-            get(fileMetaStore).selectedFileID
-        )
-      },
-    enabled : get(fileMetaStore).selectedFileID != 0
-}
+// const fileMetaQueryOptions = {
+//     queryKey : ["file-meta", get(fileMetaStore).selectedFileID],
+//     queryFn : () => {
+//         return getMetaByFileID(
+//             get(fileMetaStore).selectedFileID
+//         )
+//       },
+//     enabled : get(fileMetaStore).selectedFileID != 0
+// }
 
 const allFolderOptions = {
     queryKey : ["all-folder"],
@@ -66,7 +66,7 @@ const allFolderOptions = {
 
 const client = new QueryClient();
 const folderQuery = new QueryObserver(client, queryOption);
-const fileMetaQuery = new QueryObserver(client, fileMetaQueryOptions)
+// const fileMetaQuery = new QueryObserver(client, fileMetaQueryOptions)
 const allFolderQuery = new QueryObserver(client, allFolderOptions)
 
 const setContextFolderID = (id : number) => {
@@ -114,14 +114,14 @@ const onForward = () => {
     }
 }
 
-const changeSelectedFile = (id : number) => {
-    if(get(fileMetaStore).selectedFileID){
+const changeSelectedFile = (id : string) => {
+    if(get(fileMetaStore).selectedFileUID){
         fileMetaStore.set({
-            selectedFileID : id
+            selectedFileUID : id
         })
     } else {
         fileMetaStore.set({
-            selectedFileID : 0
+            selectedFileUID : "0"
         })
     }
 }
@@ -173,11 +173,12 @@ export {
     onForward,
     changeSelectedFile,
     folderQuery,
-    fileMetaQuery,
+    // fileMetaQuery,
     allFolderQuery, 
     setContextFolderID,
     contextFileStore,
     renameFolderStore,
     changeRenameFolder,
-    resetFolderHistory
+    resetFolderHistory,
+    fileMetaStore
 }

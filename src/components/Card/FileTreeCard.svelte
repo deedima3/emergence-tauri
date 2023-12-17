@@ -37,9 +37,7 @@
   $: console.log("ShowMenu", showMenu);
 </script>
 
-<div
-  class="flex flex-col w-full bg-main min-h-screen max-h-screen px-2 py-5 rounded-md gap-2"
->
+<div class="flex flex-col w-64 bg-main px-2 py-5 h-full rounded-md gap-2">
   {#if $allFolderQuery && $allFolderQuery.data}
     {#each $allFolderQuery.data.folders as folder}
       <FolderAccordion

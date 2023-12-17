@@ -2,13 +2,14 @@
   import Portal from "svelte-portal";
   import DocumentUpload from "../Icons/DocumentUpload.svelte";
   import FolderOpen from "../Icons/FolderOpen.svelte";
-  import { open } from "@tauri-apps/api/dialog";
-  import { uploadFile } from "@/api/explorer";
+  import { open, save } from "@tauri-apps/api/dialog";
+  import { deleteFile, downloadFile, uploadFile } from "@/api/explorer";
   import { first, last } from "radash";
-  import { contextFileStore } from "@/stores/explorerStore";
+  import { contextFileStore, fileMetaStore } from "@/stores/explorerStore";
   import toast from "svelte-french-toast";
   import DocumentArrowDown from "../Icons/DocumentArrowDown.svelte";
   import Edit from "../Icons/Edit.svelte";
+  import Delete from "../Icons/Delete.svelte";
 
   // pos is cursor position when right click occur
   export let pos = { x: 0, y: 0 };
@@ -31,9 +32,30 @@
     };
   }
 
-  const handleSaveFile = () => {};
+  const handleSaveFile = async () => {
+    console.log("selected");
+    const selected = await save({
+      defaultPath: $fileMetaStore.selectedFileUID,
+      filters: [
+        {
+          name: "Image/Document",
+          extensions: ["png", "jpeg", "pdf"],
+        },
+      ],
+    });
+    await downloadFile({
+      file_id: $fileMetaStore.selectedFileUID,
+      out_path: selected as string,
+    });
+    toast.success("File berhasil disimpan!");
+  };
 
   const handleRenameFile = () => {};
+
+  const handleDeleteFile = () => {
+    deleteFile($fileMetaStore.selectedFileUID);
+    onPageClick();
+  };
 </script>
 
 {#if showMenu}
@@ -51,9 +73,16 @@
           <DocumentArrowDown />
           <p>Download File</p>
         </button>
-        <button class="text-white flex gap-2">
+        <!-- <button class="text-white flex gap-2">
           <Edit />
           <p>Rename File</p>
+        </button> -->
+        <button
+          class="text-white flex gap-2"
+          on:click={() => handleDeleteFile()}
+        >
+          <Delete />
+          <p>Delete File</p>
         </button>
       </div>
     </nav>

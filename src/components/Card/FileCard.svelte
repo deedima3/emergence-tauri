@@ -4,14 +4,17 @@
 
   export let thumbnailPath: string;
   export let filename: string;
+  export let fileUID: string;
   export let fileID: number;
+  export let onContextMenu: (e: MouseEvent, fileUID: string) => void;
 </script>
 
 <button
   class="flex flex-col items-center gap-2"
-  on:click={() => changeSelectedFile(fileID)}
+  on:click={() => changeSelectedFile(fileUID)}
+  on:contextmenu|preventDefault={(e) => onContextMenu(e, fileUID)}
 >
-  <div class="w-40 h-40">
+  <div class="w-16 h-16">
     <img
       src={convertFileSrc(thumbnailPath)}
       alt=""
