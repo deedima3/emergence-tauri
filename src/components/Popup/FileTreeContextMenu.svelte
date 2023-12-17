@@ -43,8 +43,6 @@
     });
     toast.success("File berhasil diupload!");
   };
-
-  const handleRenameFolder = () => {};
 </script>
 
 {#if showMenu}
@@ -58,13 +56,22 @@
       <div
         class="bg-main w-max h-full px-5 text-white py-2 rounded-md shadow-md flex flex-col gap-3"
       >
-        <button class="text-white flex gap-2" on:click={() => handleAddFile()}>
+        <button
+          class="text-white flex gap-2"
+          on:click={() => {
+            handleAddFile();
+            onPageClick();
+          }}
+        >
           <DocumentUpload />
           <p>Add New File</p>
         </button>
         <button
           class="text-white flex gap-2"
-          on:click={() => changeRenameFolder($contextFileStore.folderID)}
+          on:click={() => {
+            changeRenameFolder($contextFileStore.folderID);
+            onPageClick();
+          }}
         >
           <Edit />
           <p>Rename Folder</p>
