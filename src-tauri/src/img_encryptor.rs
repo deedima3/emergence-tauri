@@ -245,7 +245,7 @@ pub fn encrypt_image(
             image::imageops::FilterType::Gaussian,
         );
 
-        let blurred = resized.blur(0.6);
+        let blurred = resized.blur(25.0);
         match blurred.write_to(&mut buf, img_ext) {
             Ok(v) => v,
             Err(e) => {

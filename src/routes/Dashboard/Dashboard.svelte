@@ -1,5 +1,6 @@
 <script lang="ts">
   import FileTreeCard from "@/components/Card/FileTreeCard.svelte";
+  import FolderCard from "@/components/Card/FolderCard.svelte";
   import HistoryCard from "@/components/Card/HistoryCard.svelte";
   import BackgroundLayout from "@/components/Layouts/BackgroundLayout.svelte";
 </script>
@@ -10,6 +11,8 @@
       <HistoryCard />
       <FileTreeCard />
     </div>
-    <div class="flex flex-col gap-2 w-full"></div>
+    <div class="flex flex-col gap-2 w-full">
+      <FolderCard />
+    </div>
   </div>
 </BackgroundLayout>

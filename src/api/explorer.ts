@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api";
 const uploadFile = async (encPayload: ImageEncryptPayload) => {
     try {
         await invoke('handle_encrypt_data', {payload: encPayload})
+        folderQuery.refetch()
     } catch (e) {
         console.log('rust-err', e);
         return Promise.reject(Error(e as string))
