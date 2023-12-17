@@ -132,6 +132,13 @@ const changeRenameFolder = (id : number) => {
     })
 }
 
+const resetFolderHistory = () => {
+    explorerStore.set({
+        historyID : [],
+        selectedID : - 1,
+    })
+}
+
 explorerStore.subscribe(() => {
     folderQuery.setOptions(queryOption)
     client.invalidateQueries({
@@ -171,5 +178,6 @@ export {
     setContextFolderID,
     contextFileStore,
     renameFolderStore,
-    changeRenameFolder
+    changeRenameFolder,
+    resetFolderHistory
 }

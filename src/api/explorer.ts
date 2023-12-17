@@ -76,18 +76,20 @@ const updateFile = async (id: string, name: string) => {
     }
 }
 
-const deleteFolder = async (id: number, name: string) => {
+const deleteFolder = async (id: number) => {
     try {
-        await invoke('handle_delete_folder', {payload: {folder_id: id, name: name}})
+        await invoke('handle_delete_folder', {payload: {folder_id: id }})
+        allFolderQuery.refetch()
     } catch (e) {
         console.log('rust-err', e);
         return Promise.reject(Error(e as string))
     }
 }
 
-const deleteFile = async (id: string, name: string) => {
+const deleteFile = async (id: string) => {
     try {
-        await invoke('handle_delete_file', {payload: {id: id, name: name}})
+        await invoke('handle_delete_file', {payload: {id: id}})
+        folderQuery.refetch()
     } catch (e) {
         console.log('rust-err', e);
         return Promise.reject(Error(e as string))

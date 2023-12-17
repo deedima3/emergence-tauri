@@ -3,11 +3,16 @@
   import DocumentUpload from "../Icons/DocumentUpload.svelte";
   import FolderOpen from "../Icons/FolderOpen.svelte";
   import { open } from "@tauri-apps/api/dialog";
-  import { uploadFile } from "@/api/explorer";
+  import { deleteFolder, uploadFile } from "@/api/explorer";
   import { first, last } from "radash";
-  import { changeRenameFolder, contextFileStore } from "@/stores/explorerStore";
+  import {
+    changeRenameFolder,
+    contextFileStore,
+    resetFolderHistory,
+  } from "@/stores/explorerStore";
   import toast from "svelte-french-toast";
   import Edit from "../Icons/Edit.svelte";
+  import Delete from "../Icons/Delete.svelte";
 
   // pos is cursor position when right click occur
   export let pos = { x: 0, y: 0 };
@@ -75,6 +80,17 @@
         >
           <Edit />
           <p>Rename Folder</p>
+        </button>
+        <button
+          class="text-white flex gap-2"
+          on:click={() => {
+            deleteFolder($contextFileStore.folderID);
+            resetFolderHistory();
+            onPageClick();
+          }}
+        >
+          <Delete />
+          <p>Delete Folder</p>
         </button>
       </div>
     </nav>
