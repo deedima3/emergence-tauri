@@ -1,7 +1,7 @@
 use aes::cipher::generic_array::GenericArray;
 use aes::cipher::typenum::U32;
 use data_encoding::BASE64;
-use image::{DynamicImage, GenericImageView, ImageBuffer, ImageFormat, Rgba, RgbaImage};
+use image::{DynamicImage, GenericImageView, ImageBuffer, ImageFormat, RgbImage, Rgb};
 use log::debug;
 use rand_core::{OsRng, RngCore};
 use std::fs;
@@ -29,24 +29,23 @@ fn parse_img_format(n: u8) -> ImageFormat {
     }
 }
 
-fn combine_image(pat_img: DynamicImage, apat_img: DynamicImage) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+fn combine_image(pat_img: DynamicImage, apat_img: DynamicImage) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
     if pat_img.dimensions() != apat_img.dimensions() {
         panic!("bruh")
     };
 
     let (width, height) = pat_img.dimensions();
-    let mut og_img = RgbaImage::new(width, height);
+    let mut og_img = RgbImage::new(width, height);
 
     for y in 0..height {
         for x in 0..width {
             let pat_pxl = pat_img.get_pixel(x, y);
             let apat_pxl = apat_img.get_pixel(x, y);
 
-            let og_img_pxl = Rgba([
+            let og_img_pxl = Rgb([
                 pat_pxl[0] | apat_pxl[0],
                 pat_pxl[1] | apat_pxl[1],
                 pat_pxl[2] | apat_pxl[2],
-                255,
             ]);
 
             og_img.put_pixel(x, y, og_img_pxl);
@@ -58,19 +57,19 @@ fn combine_image(pat_img: DynamicImage, apat_img: DynamicImage) -> ImageBuffer<R
 
 fn split_image(og_img: DynamicImage) -> (Vec<u8>, Vec<u8>) {
     let (width, height) = og_img.dimensions();
-    let mut pat_img = RgbaImage::new(width, height);
-    let mut apat_img = RgbaImage::new(width, height);
+    let mut pat_img = RgbImage::new(width, height);
+    let mut apat_img = RgbImage::new(width, height);
 
     let checkboard = |x: u32, y: u32| (x.wrapping_mul(y) / 16).count_ones() % 2 == 0;
 
     for y in 0..height {
         for x in 0..width {
-            let pxl = og_img.get_pixel(x, y);
+            let pxl = og_img.as_rgb8().unwrap().get_pixel(x, y);
 
             if checkboard(x, y) {
-                pat_img.put_pixel(x, y, pxl);
+                pat_img.put_pixel(x, y, *pxl);
             } else {
-                apat_img.put_pixel(x, y, pxl);
+                apat_img.put_pixel(x, y, *pxl);
             }
         }
     }
