@@ -1,4 +1,4 @@
-use serde::{ser::Serializer, Serialize};
+use serde::{ser::{Serializer, SerializeStruct}, Serialize};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -13,6 +13,10 @@ pub enum BackendError {
     GenericError(String),
     #[error("missing config key: {0}")]
     ConfigMalformedError(String),
+    #[error("entity not found")]
+    EntityNotFound,
+    #[error("no access")]
+    NoAccess,    
 }
 
 impl Serialize for BackendError {
@@ -20,8 +24,38 @@ impl Serialize for BackendError {
     where
         S: Serializer,
     {
-        // serializer.serialize_struct(name, len)
-        serializer.serialize_str(self.to_string().as_ref())
+        let mut state = serializer.serialize_struct("ErrorResponse", 2)?;
+        match self {
+            BackendError::ConfigMalformedError(_) => {
+                state.serialize_field("code", "401001")?;
+                state.serialize_field::<str>("msg", self.to_string().as_ref())?;
+            },
+            BackendError::DataIntegrityError(_) => {
+                state.serialize_field("code", "403002")?;
+                state.serialize_field::<str>("msg", self.to_string().as_ref())?;
+            },
+            BackendError::EntityNotFound => {
+                state.serialize_field("code", "404003")?;
+                state.serialize_field::<str>("msg", self.to_string().as_ref())?;
+            },
+            BackendError::GenericError(_) => {
+                state.serialize_field("code", "500004")?;
+                state.serialize_field::<str>("msg", self.to_string().as_ref())?;
+            },
+            BackendError::InvalidPayload => {
+                state.serialize_field("code", "400005")?;
+                state.serialize_field::<str>("msg", self.to_string().as_ref())?;
+            },
+            BackendError::KeyNotFound => {
+                state.serialize_field("code", "403006")?;
+                state.serialize_field::<str>("msg", self.to_string().as_ref())?;
+            },
+            BackendError::NoAccess => {
+                state.serialize_field("code", "403007")?;
+                state.serialize_field::<str>("msg", self.to_string().as_ref())?;
+            },
+        }
+        state.end()
     }
 }
 

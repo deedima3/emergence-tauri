@@ -1,25 +1,58 @@
-const uploadFile = () => {
+import type { FileMetaResponse, ImageDecryptPayload, ImageEncryptPayload, ListFolderResponse } from "@/types/rust.types";
+import { invoke } from "@tauri-apps/api";
 
+const uploadFile = async (encPayload: ImageEncryptPayload) => {
+    try {
+        await invoke('handle_encrypt_data', {payload: encPayload})
+    } catch (e) {
+        console.log('rust-err', e);
+        return Promise.reject(Error(e as string))
+    }
 }
 
-const getAllFolder = () => {
-    
+const getAllFolder = async (): Promise<ListFolderResponse> => {
+    try {
+        return await invoke('handle_get_all_folder')
+    } catch (e) {
+        console.log('rust-err', e);
+        return Promise.reject(Error(e as string))
+    }
 }
 
-const getMetaByFileID = (id : string | number) => {
-    
+const getMetaByFileID = async (id : string | number): Promise<FileMetaResponse> => {
+    try {
+        return await invoke('handle_get_file', {payload: {id: id}})
+    } catch (e) {
+        console.log('rust-err', e);
+        return Promise.reject(Error(e as string))
+    }
 }
 
-const getFolderFileByFolderID = (id : string | number) => {
-    
+const getFolderFileByFolderID = async (id : string | number) => {
+    try {
+        return await invoke('handle_get_all_file', {payload: {folder_id: id}})
+    } catch (e) {
+        console.log('rust-err', e);
+        return Promise.reject(Error(e as string))
+    }
 }
 
-const downloadFile = () => {
-
+const downloadFile = async (decPayload: ImageDecryptPayload) => {
+    try {
+        await invoke('handle_decrypt_data', {payload: decPayload})
+    } catch (e) {
+        console.log('rust-err', e);
+        return Promise.reject(Error(e as string))
+    }
 }
 
-const createNewFolder = () => {
-
+const createNewFolder = async (name: string) => {
+    try {
+        await invoke('handle_create_folder', {payload: {name: name}})
+    } catch (e) {
+        console.log('rust-err', e);
+        return Promise.reject(Error(e as string))
+    }
 }
 
 export {

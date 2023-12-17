@@ -4,17 +4,13 @@ use data_encoding::BASE64;
 
 use crate::{
     config_store::ConfigStore,
-    error::{BackendError, BackendResult}, dto::{ClientPayload, KEY_SK, KEY_PASS}, security::{hash_password, expand_secret_key, generate_initial_secret_key},
+    error::{BackendError, BackendResult}, dto::{ClientPayload, KEY_SK, KEY_PASS}, 
+    security::{hash_password, generate_initial_secret_key},
 };
 
+#[derive(Default)]
 pub struct KeyStore {
     secret_key: Vec<u8>,
-}
-
-impl Default for KeyStore {
-    fn default() -> Self {
-        Self { secret_key: vec![] }
-    }
 }
 
 pub struct KeyStoreState {

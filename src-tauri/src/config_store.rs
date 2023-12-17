@@ -1,11 +1,11 @@
 use std::sync::Mutex;
 
-use rusqlite::{named_params, params, Connection, OptionalExtension, Result};
+use rusqlite::{named_params, Connection, OptionalExtension, Result};
 
-struct Config {
-    key: String,
-    data: Option<String>,
-}
+// struct Config {
+//     key: String,
+//     data: Option<String>,
+// }
 
 pub struct ConfigStore {
     pub db: Mutex<Option<Connection>>,

@@ -3,8 +3,6 @@ use aes::cipher::typenum::U32;
 use data_encoding::BASE64;
 use image::{DynamicImage, GenericImageView, ImageBuffer, ImageFormat, Rgba, RgbaImage};
 use rand_core::{OsRng, RngCore};
-use rayon::prelude::*;
-use std::ffi::OsStr;
 use std::fs;
 use std::io::{BufWriter, Cursor, Write};
 use std::path::PathBuf;
@@ -329,7 +327,8 @@ pub(crate) fn decrypt_image(
     basepath: PathBuf,
     filename: String,
     key: String,
-) -> BackendResult<Vec<u8>, BackendError> {
+    out_path: PathBuf,
+) -> BackendResult<(), BackendError> {
     let rawdata = match fs::read(basepath.join(DIR_ENC).join(filename)) {
         Ok(v) => v,
         Err(e) => {
@@ -346,9 +345,7 @@ pub(crate) fn decrypt_image(
     {
         Some(v) => v,
         None => {
-            return Err(BackendError::GenericError(format!(
-                "magic number not found"
-            )))
+            return Err(BackendError::GenericError("magic number not found".to_string()))
         }
     };
 
@@ -365,9 +362,7 @@ pub(crate) fn decrypt_image(
     {
         Some(v) => v,
         None => {
-            return Err(BackendError::GenericError(format!(
-                "magic number not found"
-            )))
+            return Err(BackendError::GenericError("magic number not found".to_string()));
         }
     };
 
@@ -414,11 +409,8 @@ pub(crate) fn decrypt_image(
 
     let actual_data = combine_image(pat_img, apat_img);
 
-    let mut data_vec = Vec::new();
-    let mut data_cur = Cursor::new(&mut data_vec);
-
-    match actual_data.write_to(&mut data_cur, img_type) {
-        Ok(_) => Ok(data_vec),
+    match actual_data.save_with_format(out_path, img_type) {
+        Ok(_) => Ok(()),
         Err(e) => Err(BackendError::DataIntegrityError(format!("failed to save img err: {}", e)))
     }
 }

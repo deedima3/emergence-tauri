@@ -1,11 +1,11 @@
-use std::{fs, default};
+use std::fs;
 
 use rusqlite::named_params;
 use uuid::Uuid;
 
 use crate::{
     config_store::ConfigStore,
-    dto::{ImgDecryptPayload, ImgEncryptPayload, KEY_PASS, EmDataDir, DIR_ENC, ImgDecryptResponse},
+    dto::{ImgDecryptPayload, ImgEncryptPayload, KEY_PASS, EmDataDir, DIR_ENC},
     error::{BackendError, BackendResult},
     img_encryptor::{encrypt_image, decrypt_image},
 };
@@ -41,16 +41,14 @@ pub async fn handle_encrypt_data(
     let app_dir = match app_handle.path_resolver().app_data_dir() {
         Some(v) => v,
         None => {
-            return Err(BackendError::GenericError(format!(
-                "appdata dir should be exists"
-            )))
+            return Err(BackendError::GenericError("appdata dir should be exists".to_string()))
         }
     };
 
     let db = &mut *cfg_state.db.lock().unwrap();
     let conn = match db {
         Some(v) => v,
-        None => return Err(BackendError::GenericError(format!("cannot connect to db"))),
+        None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
     };
 
     let file_uid = Uuid::new_v4();
@@ -106,16 +104,16 @@ pub async fn handle_decrypt_data(
     app_handle: tauri::AppHandle,
     cfg_state: tauri::State<'_, ConfigStore>,
     payload: ImgDecryptPayload,
-) -> BackendResult<ImgDecryptResponse, BackendError> {
+) -> BackendResult<(), BackendError> {
     let app_dir = match app_handle.path_resolver().app_data_dir() {
         Some(v) => v,
-        None => return Err(BackendError::GenericError(format!("appdata dir should be exists")))
+        None => return Err(BackendError::GenericError("appdata dir should be exists".to_string()))
     };
 
     let db = &mut *cfg_state.db.lock().unwrap();
     let conn = match db {
         Some(v) => v,
-        None => return Err(BackendError::GenericError(format!("cannot connect to db"))),
+        None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
     };
 
     let tx = conn.transaction().unwrap();
@@ -143,10 +141,10 @@ pub async fn handle_decrypt_data(
 
     let pass = cfg_state.get(KEY_PASS.to_string()).unwrap().unwrap();
 
-    let data = match decrypt_image(app_dir, format!("{}_{}.{}", res.folder_id, res.file_uid, res.file_ext), pass) {
+    match decrypt_image(app_dir, format!("{}_{}.{}", res.folder_id, res.file_uid, res.file_ext), pass, payload.out_path) {
         Ok(v) => v,
         Err(e) => return Err(BackendError::GenericError(format!("failed to encrypt changes err: {}", e)))
     };
 
-    Ok(ImgDecryptResponse {data})
+    Ok(())
 }

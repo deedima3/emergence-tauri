@@ -12,8 +12,7 @@ mod keystore_handler;
 mod auth_handler;
 mod img_encryptor;
 mod security_handler;
-
-use std::thread;
+mod explorer_handler;
 
 use config_store::ConfigStore;
 use keystore_handler::{
@@ -22,6 +21,12 @@ use keystore_handler::{
 };
 use security_handler::{
     handle_encrypt_data, handle_decrypt_data
+};
+use explorer_handler::{
+    handle_get_all_folder,
+    handle_get_all_file,
+    handle_get_file,
+    handle_create_folder
 };
 use auth_handler::handle_auth;
 use tauri::{utils::config::AppUrl, Manager, State, WindowUrl, Window};
@@ -70,6 +75,10 @@ async fn main() {
             handle_register_client,
             handle_encrypt_data, 
             handle_decrypt_data, 
+            handle_get_all_folder,
+            handle_get_all_file,
+            handle_get_file,
+            handle_create_folder,
             open_splashscreen, 
             close_splashscreen
         ])

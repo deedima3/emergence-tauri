@@ -10,9 +10,9 @@ const encrypt_img = async (encPayload: ImageEncryptPayload) => {
     }
 }
 
-const decrypt_img = async (decPayload: ImageDecryptPayload): Promise<ImageDecryptResponse> => {
+const decrypt_img = async (decPayload: ImageDecryptPayload) => {
     try {
-        return await invoke('handle_decrypt_data', {payload: decPayload})
+        await invoke('handle_decrypt_data', {payload: decPayload})
     } catch (e) {
         console.log('rust-err', e);
         return Promise.reject(Error(e as string))
