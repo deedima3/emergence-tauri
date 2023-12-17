@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, default};
 
 use log::debug;
 
@@ -334,17 +334,17 @@ pub async fn handle_delete_file(
     };
 
     let res = match conn.query_row(
-        "select id, folder_id, file_uid, file_ext from em_data_dir where file_uid = :id",
+        "select folder_id, file_uid, file_ext from em_data_dir where file_uid = :id",
         &[(":id", &payload.id)],
         |row| {
             Ok(EmDataDir {
-                id: row.get(0).unwrap(),
-                folder_id: row.get(1).unwrap(),
-                name: row.get(2).unwrap(),
-                encrypted_at: row.get(3).unwrap(),
-                accessed_at: row.get(4).unwrap(),
-                file_uid: row.get(5).unwrap(),
-                file_ext: row.get(6).unwrap(),
+                id: 0,
+                folder_id: row.get(0).unwrap(),
+                name: "".to_string(),
+                encrypted_at: "".to_string(),
+                accessed_at: "".to_string(),
+                file_uid: row.get(1).unwrap(),
+                file_ext: row.get(2).unwrap(),
             })
         },
     ) {
