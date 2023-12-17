@@ -1,3 +1,5 @@
+use log::debug;
+
 use crate::{
     config_store::ConfigStore,
     dto::{FolderResponse, ListFolderResponse, EmDataDir, FileMetaResponse, ListFileMetaResponse, DIR_THUMBNAILS, FileMetaRequest},
@@ -179,11 +181,13 @@ pub async fn handle_update_folder(
         None => return Err(BackendError::GenericError("cannot connect to db".to_string())),
     };
 
+    debug!("{} {}", payload.folder_id, payload.name);
+
     match conn.execute(
-        "update em_folders set name = :name where id = :id)",
+        "update em_folders set name = :name where id = :id",
         &[(":name", &payload.name), (":id", &payload.folder_id.to_string())]) {
         Ok(v) => v, 
-        Err(_) => return Err(BackendError::DataIntegrityError("data not found".to_string()))
+        Err(e) => return Err(BackendError::DataIntegrityError(format!("data not found err: {}", e)))
     };
 
 
@@ -205,7 +209,7 @@ pub async fn handle_update_file(
         "update em_data_dir set name = :name where file_uid = :file_id",
         &[(":name", &payload.name), (":file_id", &payload.id)]) {
         Ok(v) => v, 
-        Err(_) => return Err(BackendError::DataIntegrityError("data not found".to_string()))
+        Err(e) => return Err(BackendError::DataIntegrityError(format!("data not found err: {}", e)))
     };
 
 
