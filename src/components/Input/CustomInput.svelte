@@ -30,6 +30,8 @@
     {placeholder}
     {...field}
     {disabled}
+    autocomplete="off"
+    autocorrect="off"
   />
   <Error {name} />
 </div>

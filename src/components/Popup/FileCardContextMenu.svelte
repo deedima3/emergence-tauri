@@ -39,7 +39,7 @@
       filters: [
         {
           name: "Image/Document",
-          extensions: ["png", "jpeg", "pdf"],
+          extensions: ["png", "jpeg"],
         },
       ],
     });
