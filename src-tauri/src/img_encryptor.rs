@@ -240,7 +240,7 @@ pub fn encrypt_image(
 
         // let blurred = resized.blur(25.0);
         let width = img.width() as usize;
-        let height = img.width() as usize;
+        let height = img.height() as usize;
         let samples = img.as_flat_samples_mut();
         match blurslice::gaussian_blur_bytes::<3>(samples.samples, width, height, 25.0) {
             Ok(v) => v,
