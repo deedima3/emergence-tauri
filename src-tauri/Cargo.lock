@@ -230,6 +230,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "blurslice"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad73c1456d8431da101a70616474273cf418382a3df426600a331a807b430f13"
+
+[[package]]
 name = "brotli"
 version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -780,6 +786,7 @@ dependencies = [
  "aes",
  "anyhow",
  "argon2",
+ "blurslice",
  "cbc",
  "chrono",
  "data-encoding",

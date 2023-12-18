@@ -218,8 +218,8 @@ pub fn encrypt_image(
             }
         };
 
-        let img = match image::load_from_memory(&raw_timg) {
-            Ok(v) => v,
+        let mut img = match image::load_from_memory(&raw_timg) {
+            Ok(v) => v.to_rgb8(),
             Err(e) => {
                 return Err(BackendError::GenericError(format!(
                     "failed to parse img err: {}",
@@ -238,14 +238,21 @@ pub fn encrypt_image(
             }
         };
 
-        let resized = img.resize(
-            img.width(),
-            img.height(),
-            image::imageops::FilterType::Gaussian,
-        );
+        // let blurred = resized.blur(25.0);
+        let width = img.width() as usize;
+        let height = img.width() as usize;
+        let samples = img.as_flat_samples_mut();
+        match blurslice::gaussian_blur_bytes::<3>(samples.samples, width, height, 25.0) {
+            Ok(v) => v,
+            Err(e) => {
+                return Err(BackendError::GenericError(format!(
+                    "failed to process thumbnail err: {}",
+                    e
+                )))
+            }
+        };
 
-        let blurred = resized.blur(25.0);
-        match blurred.write_to(&mut buf, img_ext) {
+        match img.write_to(&mut buf, img_ext) {
             Ok(v) => v,
             Err(e) => {
                 return Err(BackendError::GenericError(format!(
@@ -255,7 +262,7 @@ pub fn encrypt_image(
             }
         }
 
-        match blurred.save_with_format(
+        match img.save_with_format(
             basepath.join(DIR_THUMBNAILS).join(prefixed_filename),
             ImageFormat::Png,
         ) {
